@@ -1,0 +1,175 @@
+#include <TMultiGraph.h>
+#include "tdrstyle.C"
+#include "CMS_lumi.C"
+void CMS_LABEL(Double_t x,Double_t y){
+    TLatex l; //l.SetTextAlign(12); l.SetTextSize(tsize); 
+    l.SetNDC();
+    l.SetTextFont(72);
+    l.SetTextColor(kBlack);
+    l.SetTextSize(0.05);
+    l.DrawLatex(x,y,"#bf{Preliminary}");
+}
+void TT_LABEL(Double_t x,Double_t y){
+    TLatex l; //l.SetTextAlign(12); l.SetTextSize(tsize); 
+    l.SetNDC();
+    l.SetTextFont(42);
+    l.SetTextColor(kBlack);
+    l.SetTextSize(0.04);
+    l.DrawLatex(x,y,"t#bar{t} events ");
+}
+void PT_LABEL_30(Double_t x,Double_t y){
+    TLatex l; //l.SetTextAlign(12); l.SetTextSize(tsize); 
+    l.SetNDC();
+    l.SetTextFont(42);
+    l.SetTextColor(kBlack);
+    l.SetTextSize(0.04);
+    l.DrawLatex(x,y,"AK4jets (p_{T} > 30 GeV) ");
+}
+void PT_LABEL_90(Double_t x,Double_t y){
+    TLatex l; //l.SetTextAlign(12); l.SetTextSize(tsize); 
+    l.SetNDC();
+    l.SetTextFont(42);
+    l.SetTextColor(kBlack);
+    l.SetTextSize(0.04);
+    l.DrawLatex(x,y,"AK4jets (p_{T} > 90 GeV) ");
+}
+void PT_LABEL_200(Double_t x,Double_t y){
+    TLatex l; //l.SetTextAlign(12); l.SetTextSize(tsize); 
+    l.SetNDC();
+    l.SetTextFont(42);
+    l.SetTextColor(kBlack);
+    l.SetTextSize(0.04);
+    l.DrawLatex(x,y,"AK4jets (p_{T} > 200 GeV) ");
+}
+void PT_LABEL_300(Double_t x,Double_t y){
+    TLatex l; //l.SetTextAlign(12); l.SetTextSize(tsize); 
+    l.SetNDC();
+    l.SetTextFont(42);
+    l.SetTextColor(kBlack);
+    l.SetTextSize(0.04);
+    l.DrawLatex(x,y,"AK4jets (p_{T} > 300 GeV) ");
+}
+
+void drawer(){
+  //gROOT->LoadMacro("tdrstyle.C");
+  //setTDRStyle();
+  gStyle->SetCanvasBorderMode(0);
+  gStyle->SetCanvasColor(kWhite);
+  gStyle->SetLegendBorderSize(1);
+  gStyle->SetLabelColor(1, "XYZ");
+  gStyle->SetLabelFont(42, "XYZ");
+  gStyle->SetLabelOffset(0.007, "XYZ");
+  gStyle->SetLabelSize(0.04, "XYZ");
+  gStyle->SetAxisColor(1, "XYZ");
+  gStyle->SetStripDecimals(kTRUE);
+  gStyle->SetTickLength(0.03, "XYZ");
+  gStyle->SetNdivisions(510, "XYZ");
+  gStyle->SetPadTickX(1);  // To get tick marks on the opposite side of the frame
+  gStyle->SetPadTickY(1);
+  gStyle->SetTitleColor(1, "XYZ");
+  gStyle->SetTitleFont(42, "XYZ");
+  gStyle->SetTitleSize(0.045, "XYZ");
+  // tdrStyle->SetTitleXSize(Float_t size = 0.02); // Another way to set the size?
+  // tdrStyle->SetTitleYSize(Float_t size = 0.02);
+  gStyle->SetTitleXOffset(0.9);
+  gStyle->SetTitleYOffset(1.15);
+  writeExtraText = false;       // if extra text
+  extraText  = "t#bar{t} events";  // default extra text is "Preliminary"
+  //lumi_sqrtS = "#sqrt{s} = 13 TeV";
+  lumi_sqrtS = "41.9 fb^{-1} (13 TeV, 2017)";
+  const int nr = 6;
+  TFile * files[nr] = {};
+  files[0] = TFile::Open("Shallow_highlevel.root");
+  files[1] = TFile::Open("Dense_highlevel.root"); 
+  files[2] = TFile::Open("dense_multiinput.root"); 
+  files[3] = TFile::Open("conv_multiinput.root"); 
+  files[4] = TFile::Open("RNN_moreComplex_not_sorted.root"); //RNN_sorted.root
+  files[5] = TFile::Open("RNN_big_multiclass.root"); //
+
+  TFile *cut_based_file = TFile::Open("Cut_based.root");
+  TGraph * cut_based = (TGraph*)cut_based_file->Get("roccurve_0");
+  cut_based->SetLineColor(6);
+  cut_based->SetLineWidth(2); 
+
+  TFile *cut_based_file = TFile::Open("Cut_based.root");
+  TGraph * cut_based = (TGraph*)cut_based_file->Get("roccurve_0");
+  cut_based->SetLineColor(6);
+  cut_based->SetLineWidth(2); 
+  
+  TGraph * graphlvsb[nr] = {};
+  TGraph * graphcvsb[nr] = {};
+  auto mg1  = new TMultiGraph();
+  auto mg2  = new TMultiGraph();
+  for(int z = 0; z < nr; z++){
+    graphlvsb[z] = (TGraph*)files[z]->Get("roccurve_1");
+    graphlvsb[z]->SetLineColor(kRed+z);
+    graphcvsb[z] = (TGraph*)files[z]->Get("roccurve_0");
+    graphcvsb[z]->SetLineColor(kRed+z);
+    graphlvsb[z]->SetLineWidth(2); 
+    graphcvsb[z]->SetLineWidth(2);
+  }
+
+  graphlvsb[1]->SetLineColor(kBlue);
+  graphcvsb[1]->SetLineColor(kBlue);
+  graphlvsb[2]->SetLineColor(kGreen+1);
+  graphcvsb[2]->SetLineColor(kGreen+1);
+  graphlvsb[3]->SetLineColor(kOrange);
+  graphcvsb[3]->SetLineColor(kOrange);
+  graphlvsb[4]->SetLineColor(kBlack);
+  graphcvsb[4]->SetLineColor(kBlack);
+  graphlvsb[5]->SetLineColor(kRed);
+  graphcvsb[5]->SetLineColor(kRed);
+
+
+  TCanvas *c1 = new TCanvas("c1", "ROCS",50,50,1200,900);
+  c1->SetGrid();
+  graphcvsb[0]->Draw("CA");
+
+  graphcvsb[0]->SetTitle(""); 
+  graphcvsb[0]->GetXaxis()->SetTitle("t_{L} vs t_{R} efficiency");
+  graphcvsb[0]->GetYaxis()->SetTitle("misid. probability"); 
+
+  graphcvsb[1]->Draw("same");
+  graphcvsb[2]->Draw("same");
+  graphcvsb[3]->Draw("same");
+  graphcvsb[4]->Draw("same");
+  graphcvsb[5]->Draw("same");
+
+  graphcvsb[0]->GetXaxis()->SetRangeUser(0.0,1.0);
+  graphcvsb[0]->GetYaxis()->SetRangeUser(0.0005,1);
+  c1->SetLogy();
+
+  auto legend1 = new TLegend(0.1419,0.5384,0.4044,0.6877);
+  legend1->AddEntry(cut_based,"H_{t} cut","l");
+  legend1->AddEntry(graphlvsb[0],"Shallow","l");
+  legend1->AddEntry(graphlvsb[1],"Dense","l");
+  legend1->AddEntry(graphlvsb[2],"Dense - more input","l");
+  legend1->AddEntry(graphlvsb[3],"conv - more input","l");
+  legend1->AddEntry(graphlvsb[4],"RNN","l");
+  legend1->AddEntry(graphlvsb[5],"RNN multiclass","l");
+  legend1->Draw();  
+
+  TCanvas *c9 = new TCanvas("c9", "ROCS",50,50,1200,900);
+  c9->SetGrid();
+  graphlvsb[0]->Draw("CA");
+
+  graphlvsb[0]->SetTitle(""); 
+  graphlvsb[0]->GetXaxis()->SetTitle("EFT vs SM efficiency");
+  graphlvsb[0]->GetYaxis()->SetTitle("misid. probability"); 
+
+  graphlvsb[1]->Draw("same");
+  graphlvsb[2]->Draw("same");
+  graphlvsb[3]->Draw("same");
+  graphlvsb[4]->Draw("same");
+  graphlvsb[5]->Draw("same");
+  cut_based->Draw("same");
+  
+  graphlvsb[0]->GetXaxis()->SetRangeUser(0.0,1.0);
+  graphlvsb[0]->GetYaxis()->SetRangeUser(0.0005,1);
+  c9->SetLogy();
+  legend1->Draw();
+
+
+  
+}
+
