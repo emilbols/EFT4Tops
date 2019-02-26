@@ -26,7 +26,7 @@ from numpy.lib.recfunctions import stack_arrays
 from sklearn.preprocessing import StandardScaler
 from keras.models import load_model
 from sklearn.metrics import roc_curve,roc_auc_score
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 import pickle
 from rootpy.plotting import Hist
 from keras import initializers
@@ -78,6 +78,25 @@ class SortLayer(Layer):
         return x
 
 
+
+def spit_out_wp(df, label, sm = False):
+
+    newx = np.logspace(-3, 0, 100)
+    tprs = pd.DataFrame()
+    scores = []
+    cs = np.squeeze((label != 0))
+    print cs.shape
+    print df.shape
+    if sm: 
+    	df = df[cs[:]]
+	blab = (label[cs] != 2)*1.0
+    else:
+    	blab = cs*1.0
+    tmp_fpr, tmp_tpr, threshold = roc_curve(blab, df)
+
+    return tmp_tpr, tmp_fpr, threshold
+
+
 def spit_out_roc(df, label, sm = False):
 
     newx = np.logspace(-3, 0, 100)
@@ -91,7 +110,7 @@ def spit_out_roc(df, label, sm = False):
 	blab = (label[cs] != 2)*1.0
     else:
     	blab = cs*1.0
-    tmp_fpr, tmp_tpr, _ = roc_curve(blab, df)
+    tmp_fpr, tmp_tpr, threshold = roc_curve(blab, df)
     scores.append(
         roc_auc_score(blab, df)
     )
@@ -103,7 +122,7 @@ def spit_out_roc(df, label, sm = False):
     tprs = spline(newx)
     scores = np.array(scores)
     
-    return tprs, newx
+    return tprs, newx, threshold
 
 Y = np.load('numpy_array/truth.npy')    
 X_jets = np.load('numpy_array/features_jet.npy')
@@ -135,9 +154,17 @@ model = load_model('RNN_multiclass/model_checkpoint_save.hdf5')
 discr_dict = model.predict(X_test)
 print discr_dict.shape
 print y_test.shape
-x1, y1 = spit_out_roc(discr_dict[:,1]+discr_dict[:,2], y_test, sm = True)
-x2, y2 = spit_out_roc(1-discr_dict[:,0], y_test, sm = False)
+x1, y1, t1 = spit_out_roc(discr_dict[:,1]+discr_dict[:,2], y_test, sm = True)
+x2, y2, t2 = spit_out_roc(1-discr_dict[:,0], y_test, sm = False)
 
+x_wp2, y_wp2, t_wp2 = spit_out_wp(1-discr_dict[:,0], y_test, sm = False)
+
+for n in range(0,x_wp2.shape[0]):
+    if 0.29 < x_wp2[n] < 0.31:
+        print x_wp2[n]
+        print t_wp2[n]
+
+        
 f = ROOT.TFile("ROCS/RNN_big_multiclass.root", "recreate")
 gr1 = TGraph( 100, x1, y1 )
 gr1.SetName("roccurve_0")

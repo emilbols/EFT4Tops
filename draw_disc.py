@@ -26,7 +26,7 @@ from numpy.lib.recfunctions import stack_arrays
 from sklearn.preprocessing import StandardScaler
 from keras.models import load_model
 from sklearn.metrics import roc_curve,roc_auc_score
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 import pickle
 from rootpy.plotting import Hist
 from keras import initializers
@@ -200,9 +200,10 @@ EFT_tR_discr = discr[right]
 
 tL_discr = discrTL[left]
 tR_discr = discrTL[right]
+SM_left_right_discr = discrTL[SM]
 
 makeDiscr({"EFT":EFT_discr,"SM":SM_discr}, "discr_SMvsEFT.pdf","discriminator P(t_{L}) + P(t_{R})")
 
-makeDiscr({"#splitline{EFT with}{left-handed top}":tL_discr, "#splitline{EFT with}{right-handed top}":tR_discr},"discr_tLvstR.pdf","discriminator #frac{P(t_{L})}{P(t_{L}) + P(t_{R})}")
+makeDiscr({"#splitline{EFT with}{left-handed top}":tL_discr, "#splitline{EFT with}{right-handed top}":tR_discr,"SM":SM_left_right_discr},"discr_tLvstR.pdf","discriminator #frac{P(t_{L})}{P(t_{L}) + P(t_{R})}")
 
 makeDiscr({"#splitline{EFT with}{left-handed top}":EFT_tL_discr, "#splitline{EFT with}{right-handed top}":EFT_tR_discr,"SM":SM_discr}, "discr_SMvstLvstR.pdf","discriminator P(t_{L}) + P(t_{R})")

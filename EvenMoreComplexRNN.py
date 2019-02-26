@@ -24,7 +24,7 @@ from numpy.lib.recfunctions import stack_arrays
 from sklearn.preprocessing import StandardScaler
 from keras.models import load_model
 from sklearn.metrics import roc_curve,roc_auc_score
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 import pickle
 from rootpy.plotting import Hist
 from keras import initializers
@@ -203,7 +203,7 @@ def drawTrainingCurve(input,output):
 
 gROOT.SetBatch(1)
 
-OutputDir = 'RNN_model_EvenMoreComplex'
+OutputDir = 'model_RNN_leftright'
 Y = np.load('numpy_array/truth.npy')    
 X_jets = np.load('numpy_array/features_jet.npy')
 X_mu = np.load('numpy_array/features_mu.npy')
@@ -213,25 +213,29 @@ print X_jets.shape
 print Y.shape
 SM = (Y == 0) 
 left = ((Y == 1) | (Y == 2))
-right = ((Y == 3) | (Y == 4) | (Y == 5))
+leftright = ( (Y == 3) | (Y == 4) )
+right = (Y == 5)
 Y[left] = 1
-Y[right] = 2
+Y[leftright] = 2
+Y[right] = 3
 
 cut = len(Y[SM])/2
 Y = Y[cut:]
 SM = (Y == 0) 
 left = ((Y == 1))
-right = ((Y == 2))
+leftright = ((Y == 2))
+right = ((Y == 3))
 X_jets = X_jets[cut:]
 X_mu = X_mu[cut:]
 X_el = X_el[cut:]
 X_flat = X_flat[cut:]
 print len(Y)
-print len(Y[left])
 print len(Y[SM])
+print len(Y[left])
+print len(Y[leftright])
 print len(Y[right])
 labels = Y
-nclasses = 3
+nclasses = 4
 
 Y = to_categorical(labels, num_classes=nclasses)
 scaler = StandardScaler()

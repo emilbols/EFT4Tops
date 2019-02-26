@@ -26,7 +26,7 @@ from numpy.lib.recfunctions import stack_arrays
 from sklearn.preprocessing import StandardScaler
 from keras.models import load_model
 from sklearn.metrics import roc_curve,roc_auc_score
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 import pickle
 from rootpy.plotting import Hist
 from keras import initializers
@@ -131,14 +131,14 @@ X_jets_train, X_jets_test,X_mu_train, X_mu_test,X_el_train, X_el_test,X_flat_tra
 X_train = [X_jets_train,X_mu_train, X_el_train, X_flat_train]
 X_test = [X_jets_test,X_mu_test,X_el_test,X_flat_test]
 #model = load_model('Model_RNNwithSort/model_checkpoint_save.hdf5',custom_objects={'SortLayer':SortLayer()})
-model = load_model('Model_moreComplex_RNN_noSort/model_checkpoint_save.hdf5')
+model = load_model('Model_denseBased/model_checkpoint_save.hdf5')
 discr_dict = model.predict(X_test)
 print discr_dict.shape
 print y_test.shape
 x1, y1 = spit_out_roc(discr_dict[:,1], y_test, sm = True)
 x2, y2 = spit_out_roc(discr_dict[:,1]+discr_dict[:,2], y_test, sm = False)
 
-f = ROOT.TFile("ROCS/RNN_moreComplex_not_sorted.root", "recreate")
+f = ROOT.TFile("ROCS/is_this_correct_dense.root", "recreate")
 gr1 = TGraph( 100, x1, y1 )
 gr1.SetName("roccurve_0")
 gr2 = TGraph( 100, x2, y2 )

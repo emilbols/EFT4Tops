@@ -82,7 +82,7 @@ void drawer(){
   files[0] = TFile::Open("Shallow_highlevel.root");
   files[1] = TFile::Open("Dense_highlevel.root"); 
   files[2] = TFile::Open("dense_multiinput.root"); 
-  files[3] = TFile::Open("conv_multiinput.root"); 
+  files[3] = TFile::Open("is_this_correct_dense.root"); // a
   files[4] = TFile::Open("RNN_moreComplex_not_sorted.root"); //RNN_sorted.root
   files[5] = TFile::Open("RNN_big_multiclass.root"); //
 

@@ -22,7 +22,7 @@ from numpy.lib.recfunctions import stack_arrays
 from sklearn.preprocessing import StandardScaler
 from keras.models import load_model
 from sklearn.metrics import roc_curve,roc_auc_score
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 import pickle
 from rootpy.plotting import Hist
 
@@ -184,11 +184,15 @@ def make_model(input_dim, nb_classes, nb_hidden_layers = 3, nb_neurons = 100,mom
 
 gROOT.SetBatch(1)
 
-InputDir = 'new_merge'
+InputDir = 'inference_samples'
 classes_dict = { #name:class_number 
         'SM': 0,
         #LLLL
-        "Coupling": 1
+        'ctt1' : 1,
+        'cQQ1' : 2,
+        'cQQ8' : 3,
+        'cQt1' : 4,
+        'cQt8' : 5
 }
 
 couplings = classes_dict.keys()
@@ -203,68 +207,73 @@ for c in couplings:
         chain_dict.update({c:TChain("tree")})
         #SM_chain = TChain("")
         #C1tu_chain = TChain("")
-        
-chain_dict["SM"].Add(InputDir + "/SM_merge_tag_1_delphes_events.root")
+
+namelist = ['cQQ1','cQQ8','cQt1','cQt8','ctt1']
+coupling = ['-20','-10','-5','-1','+1','+5','+10','+20']
+for gdp in namelist:
+        for bbp in coupling:
+                name = gdp+bbp
+                #chain_dict["SM"].Add(InputDir + "/SM_merge_tag_1_delphes_events.root")
+                file_check = ROOT.TChain("tree")
+                for f in files:
+                        if name in f:
+                                file_check.Add(InputDir + "/" + f)
+                        
+                                branchnames = [i.GetName() for i in file_check.GetListOfBranches()]
+                                print branchnames, len(branchnames)
+                        
+                jetbranch = ['jet_pt','jet_eta','jet_mass','jet_phi','jet_btag']
+                mu_branch = ['mu_pt','mu_eta','mu_mt','mu_phi','mu_q']
+                el_branch = ['el_pt','el_eta','el_mt','el_phi','el_q']
+                flat_branch = ['m_l1j1', 'H_T', 'm_l1j2', 'm_l1l2', 'Nleps', 'H_Tratio', 'Nbtags', 'Nlooseb', 'Ntightb', 'H_Tb', 'Njets', 'MET', 'm_j1j2']
                 
-for f in files:
-        if "SM" not in f:
-                chain_dict["SM"].Add(InputDir + "/" + f)
+                truthbranch = ['class']
+
+                data_dict = {}
+
+                Y = rootnp.tree2array(file_check,branches = truthbranch)
+                Z_Y = rootnp.rec2array(Y)
+
+                flat = rootnp.tree2array(file_check,branches = flat_branch)
+                Z_flat = rootnp.rec2array(flat)
+                #Z_Y = np.zeros(Y.shape[0])
+                #for a in range(0,Y.shape):
+                #        Z_Y[a] = Z_Y[a].tolist()
+
                 
-branchnames = [i.GetName() for i in chain_dict["SM"].GetListOfBranches()]
-print branchnames, len(branchnames)
-
-jetbranch = ['jet_pt','jet_eta','jet_mass','jet_phi','jet_btag']
-mu_branch = ['mu_pt','mu_eta','mu_mt','mu_phi','mu_q']
-el_branch = ['el_pt','el_eta','el_mt','el_phi','el_q']
-flat_branch = ['m_l1j1', 'H_T', 'm_l1j2', 'm_l1l2', 'Nleps', 'H_Tratio', 'Nbtags', 'Nlooseb', 'Ntightb', 'H_Tb', 'Njets', 'MET', 'm_j1j2']
-
-truthbranch = ['class']
-
-data_dict = {}
-
-Y = rootnp.tree2array(chain_dict["SM"],branches = truthbranch)
-Z_Y = rootnp.rec2array(Y)
-
-flat = rootnp.tree2array(chain_dict["SM"],branches = flat_branch)
-Z_flat = rootnp.rec2array(flat)
-#Z_Y = np.zeros(Y.shape[0])
-#for a in range(0,Y.shape):
-#        Z_Y[a] = Z_Y[a].tolist()
-
-
-X_mu = rootnp.tree2array(chain_dict["SM"], branches = mu_branch)
-X_mu = rootnp.rec2array(X_mu)
-
-X_el = rootnp.tree2array(chain_dict["SM"], branches = el_branch)
-X_el = rootnp.rec2array(X_el)
-
-X_jets = rootnp.tree2array(chain_dict["SM"], branches = jetbranch)
-X_jets = rootnp.rec2array(X_jets)
-
-max_jets = 15
-Z_jets = np.zeros((X_jets.shape[0],max_jets,len(jetbranch)))
-for a in range(0,X_jets.shape[0]):
-        for b in range(0,len(jetbranch)):
-                Z_jets[a,0:len(X_jets[a,b].tolist()),b] = X_jets[a,b][:max_jets].tolist()
-
-max_el = 5
-Z_el = np.zeros((X_el.shape[0],max_el,len(el_branch)))
-for a in range(0,X_el.shape[0]):
-        for b in range(0,len(el_branch)):
-                Z_el[a,0:len(X_el[a,b].tolist()),b] = X_el[a,b][:max_el].tolist()
-
-max_mu = 5
-Z_mu = np.zeros((X_mu.shape[0],max_mu,len(mu_branch)))
-for a in range(0,X_mu.shape[0]):
-        for b in range(0,len(mu_branch)):
-                Z_mu[a,0:len(X_mu[a,b].tolist()),b] = X_mu[a,b][:max_mu].tolist()
+                X_mu = rootnp.tree2array(file_check, branches = mu_branch)
+                X_mu = rootnp.rec2array(X_mu)
                 
+                X_el = rootnp.tree2array(file_check, branches = el_branch)
+                X_el = rootnp.rec2array(X_el)
+                
+                X_jets = rootnp.tree2array(file_check, branches = jetbranch)
+                X_jets = rootnp.rec2array(X_jets)
+                
+                max_jets = 8
+                Z_jets = np.zeros((X_jets.shape[0],max_jets,len(jetbranch)))
+                for a in range(0,X_jets.shape[0]):
+                        for b in range(0,len(jetbranch)):
+                                Z_jets[a,0:len(X_jets[a,b].tolist()),b] = X_jets[a,b][:max_jets].tolist()
+                                
+                max_el = 3
+                Z_el = np.zeros((X_el.shape[0],max_el,len(el_branch)))
+                for a in range(0,X_el.shape[0]):
+                        for b in range(0,len(el_branch)):
+                                Z_el[a,0:len(X_el[a,b].tolist()),b] = X_el[a,b][:max_el].tolist()
 
-np.save('numpy_array/features_jet.npy',Z_jets)
-np.save('numpy_array/features_mu.npy',Z_mu)
-np.save('numpy_array/features_el.npy',Z_el)
-np.save('numpy_array/features_flat.npy',Z_flat)
-np.save('numpy_array/truth.npy',Z_Y)
+                max_mu = 3
+                Z_mu = np.zeros((X_mu.shape[0],max_mu,len(mu_branch)))
+                for a in range(0,X_mu.shape[0]):
+                        for b in range(0,len(mu_branch)):
+                                Z_mu[a,0:len(X_mu[a,b].tolist()),b] = X_mu[a,b][:max_mu].tolist()
+
+
+                np.save('inference_samples_preprocessed/'+name+'features_jet.npy',Z_jets)
+                np.save('inference_samples_preprocessed/'+name+'features_mu.npy',Z_mu)
+                np.save('inference_samples_preprocessed/'+name+'features_el.npy',Z_el)
+                np.save('inference_samples_preprocessed/'+name+'features_flat.npy',Z_flat)
+                np.save('inference_samples_preprocessed/'+name+'truth.npy',Z_Y)
 
 
 

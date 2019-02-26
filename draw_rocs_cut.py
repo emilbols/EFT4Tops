@@ -26,7 +26,7 @@ from numpy.lib.recfunctions import stack_arrays
 from sklearn.preprocessing import StandardScaler
 from keras.models import load_model
 from sklearn.metrics import roc_curve,roc_auc_score
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 import pickle
 from rootpy.plotting import Hist
 from keras import initializers
@@ -91,7 +91,7 @@ def spit_out_roc(df, label, sm = False):
 	blab = (label[cs] != 2)*1.0
     else:
     	blab = cs*1.0
-    tmp_fpr, tmp_tpr, _ = roc_curve(blab, df)
+    tmp_fpr, tmp_tpr, threshold = roc_curve(blab, df)
     scores.append(
         roc_auc_score(blab, df)
     )
@@ -103,8 +103,24 @@ def spit_out_roc(df, label, sm = False):
     tprs = spline(newx)
     scores = np.array(scores)
     
-    return tprs, newx
+    return tprs, newx, threshold
 
+def spit_out_wp(df, label, sm = False):
+
+    newx = np.logspace(-3, 0, 100)
+    tprs = pd.DataFrame()
+    scores = []
+    cs = np.squeeze((label != 0))
+    print cs.shape
+    print df.shape
+    if sm:
+        df = df[cs[:]]
+        blab = (label[cs] != 2)*1.0
+    else:
+        blab = cs*1.0
+    tmp_fpr, tmp_tpr, threshold = roc_curve(blab, df)
+    return tmp_tpr, tmp_fpr, threshold
+                                            
 Y = np.load('numpy_array/truth.npy')    
 X_jets = np.load('numpy_array/features_jet.npy')
 X_mu = np.load('numpy_array/features_mu.npy')
@@ -131,12 +147,21 @@ X_jets_train, X_jets_test,X_mu_train, X_mu_test,X_el_train, X_el_test,X_flat_tra
 X_train = [X_jets_train,X_mu_train, X_el_train, X_flat_train]
 X_test = [X_jets_test,X_mu_test,X_el_test,X_flat_test]
 #model = load_model('Model_RNNwithSort/model_checkpoint_save.hdf5',custom_objects={'SortLayer':SortLayer()})
-discr_dict = X_flat_test[:,12]
+discr_dict = X_flat_test[:,1]        
+norm = np.amax(discr_dict)
 discr_dict = discr_dict/np.amax(discr_dict)
 
-x1, y1 = spit_out_roc(discr_dict, y_test, sm = False)
 
-f = ROOT.TFile("ROCS/Cut_based_htb.root", "recreate")
+x1, y1, thresh = spit_out_roc(discr_dict, y_test, sm = False)
+x_wp1, y_wp1, thresh_wp = spit_out_wp(discr_dict, y_test, sm = False)
+
+
+for n in range(0,x_wp1.shape[0]):
+    if 0.29 < x_wp1[n] < 0.31:
+        print x_wp1[n]
+        print thresh_wp[n]*norm
+
+f = ROOT.TFile("ROCS/Cut_based_ht.root", "recreate")
 gr1 = TGraph( 100, x1, y1 )
 gr1.SetName("roccurve_0")
 gr1.Write()

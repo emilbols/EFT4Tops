@@ -130,20 +130,17 @@ def makeDiscr(discr_dict,outfile,xtitle="discriminator"):
         a.GetXaxis().SetLabelSize(0.05)
         a.GetXaxis().SetTitleSize(0.05)
         a.GetXaxis().SetTitleOffset(1.45)
-        a.GetYaxis().SetTitle("a.u.")
-        a.GetYaxis().SetTickSize(0)
-        a.GetYaxis().SetLabelSize(0)
+        a.GetYaxis().SetTitle("counts")
         a.GetYaxis().SetTitleSize(0.06)
         a.GetYaxis().SetTitleOffset(0.9)
-        a.Scale(1./a.Integral())
-        #a.GetYaxis().SetRangeUser(0.00001,100)
-        a.GetYaxis().SetRangeUser(0,0.2)
+        a.GetYaxis().SetRangeUser(1,14000)
         if counter == 0: a.draw("hist")
         else: a.draw("same hist")
         l.AddEntry(a,leg,"l")
         counter += 1
         
     l.Draw("same")
+    c.SetLogy()
     c.SaveAs(outfile)
 
 
@@ -191,6 +188,7 @@ discr = 1-discr_dict[:,0]
 
 
 SM_discr = discr[SM]
+EFT_discr = discr[op1+op2+op3+op4+op5]
 EFT_discr1 = discr[op1]
 EFT_discr2 = discr[op2]
 EFT_discr3 = discr[op3]
@@ -220,11 +218,12 @@ EFT_discr_ctt1 = discr_ctt1[op5]
 #tL_discr = discrTL[left]
 #tR_discr = discrTL[right]
 
-makeDiscr({"cQQ1":EFT_discr1,"cQQ8":EFT_discr2,"cQt1":EFT_discr3,"cQt8":EFT_discr4,"ctt1":EFT_discr5,"SM":SM_discr}, "discr_SMvsEFT_multi.pdf","discriminator 1-SM)")
-makeDiscr({"cQQ1":EFT_discr_cQQ1,"SM":SM_discr_cQQ1}, "discr_SMvscQQ1_multi.pdf","P(cQQ1)/(P(cQQ1)+P(SM))")
-makeDiscr({"cQQ8":EFT_discr_cQQ8,"SM":SM_discr_cQQ8}, "discr_SMvscQQ8_multi.pdf","P(cQQ8)/(P(cQQ8)+P(SM))")
-makeDiscr({"cQt1":EFT_discr_cQt1,"SM":SM_discr_cQt1}, "discr_SMvscQt1_multi.pdf","P(cQt1)/(P(cQt1)+P(SM))")
-makeDiscr({"cQt8":EFT_discr_cQt8,"SM":SM_discr_cQt8}, "discr_SMvscQt8_multi.pdf","P(cQt8)/(P(cQt8)+P(SM))")
-makeDiscr({"ctt1":EFT_discr_ctt1,"SM":SM_discr_ctt1}, "discr_SMvsctt1_multi.pdf","P(ctt1)/(P(ctt1)+P(SM))")
+makeDiscr({"EFT":EFT_discr,"SM":SM_discr}, "discr_SMvsEFT_best.pdf","discriminator 1-SM)")
+makeDiscr({"SM":SM_discr,"cQQ1":EFT_discr1,"cQQ8":EFT_discr2,"cQt1":EFT_discr3,"cQt8":EFT_discr4,"ctt1":EFT_discr5}, "discr_SMvsEFT_multi.pdf","discriminator 1-SM)")
+makeDiscr({"SM":SM_discr_cQQ1,"cQQ1":EFT_discr_cQQ1}, "discr_SMvscQQ1_multi.pdf","P(cQQ1)/(P(cQQ1)+P(SM))")
+makeDiscr({"SM":SM_discr_cQQ8,"cQQ8":EFT_discr_cQQ8}, "discr_SMvscQQ8_multi.pdf","P(cQQ8)/(P(cQQ8)+P(SM))")
+makeDiscr({"SM":SM_discr_cQt1,"cQt1":EFT_discr_cQt1}, "discr_SMvscQt1_multi.pdf","P(cQt1)/(P(cQt1)+P(SM))")
+makeDiscr({"SM":SM_discr_cQt8,"cQt8":EFT_discr_cQt8}, "discr_SMvscQt8_multi.pdf","P(cQt8)/(P(cQt8)+P(SM))")
+makeDiscr({"SM":SM_discr_ctt1,"ctt1":EFT_discr_ctt1,}, "discr_SMvsctt1_multi.pdf","P(ctt1)/(P(ctt1)+P(SM))")
 
 
