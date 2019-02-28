@@ -48,10 +48,10 @@ def func((x, y), a, b, c, d, e, f):
 
 #samples = ['cQQ1']
 out_dir = 'XsecContours/'
-samples = ['cQQ1','cQt1']
+samples = ['cQQ1','ctt1']
 #samples = ['cQQ1']
 couplings = ['-3','-2','-1','0','+1','+2','+3']
-model = load_model('Model_denseBased/model_checkpoint_save.hdf5')
+model = load_model('model_RNN_leftright/model_checkpoint_save.hdf5')
 #wp = 0.55  #0.5506506
 wp_specific = 0.5
 wp_lvsr = 0.5
@@ -73,10 +73,10 @@ x_sec = {'cQQ1': [0.01541,0.003964,0.001164,0.0002886,0.0002575,0.0003095,0.0012
 #xsec_error = [0.00001,0.00001,0.00001,0.00001,0.00000000000001,0.00001,0.00001,0.00001,0.00001] # pb
 xsec_frac_error = 0.01
 n=0
-input_dir = 'inference_samples_two_preprocessed/'
+input_dir = 'inference_samples_three_preprocessed/'
 frac_syst = 0.5
 
-x_sec = np.load('cross_interference/cross_section.npy')
+x_sec = np.load('cQQ1_ctt1_inference_cross/cross_section.npy')
 
 
 n=0
@@ -101,7 +101,7 @@ for z in couplings:
                    X_flat = np.load(input_dir+name+'features_flat.npy')
                    X = [X_jets,X_mu,X_el,X_flat]
                    discr_dict = model.predict(X)
-		   np.save(input_dir+name+'prediction_noRNN.npy',discr_dict)
+		   np.save(input_dir+name+'prediction_rightleft.npy',discr_dict)
 
                                     
                       			

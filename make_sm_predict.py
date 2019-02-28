@@ -51,7 +51,7 @@ out_dir = 'XsecContours/'
 samples = ['cQQ1','cQt1']
 #samples = ['cQQ1']
 couplings = ['-3','-2','-1','0','+1','+2','+3']
-model = load_model('Model_denseBased/model_checkpoint_save.hdf5')
+model = load_model('model_RNN_leftright/model_checkpoint_save.hdf5')
 #wp = 0.55  #0.5506506
 wp_specific = 0.5
 wp_lvsr = 0.5
@@ -63,7 +63,7 @@ lum = 302.3*1000.0 # pb^-1
 
 classes_dict = {
         'SM': 0,
-        'ctt1' : 2,
+        'ctt1' : 3,
         'cQQ1' : 1,
         'cQQ8' : 1,
         'cQt1' : 2,
@@ -106,4 +106,4 @@ for z in couplings:
                                     X_flat = np.load('SM_only/features_flat.npy')
                                     X = [X_jets,X_mu,X_el,X_flat]
                                     discr_dict = model.predict(X,batch_size=256)
-                                    np.save('SM_only/prediction_noRNN.npy',discr_dict)
+                                    np.save('SM_only/prediction_rightleft.npy',discr_dict)
