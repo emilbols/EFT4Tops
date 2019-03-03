@@ -301,7 +301,7 @@ X_train = [X_jets_train,X_mu_train, X_el_train, X_flat_train]
 X_test = [X_jets_test,X_mu_test,X_el_test,X_flat_test]
 
 train_history = model.fit(X_train, Y_train,
-          batch_size=512, epochs=200,
+          batch_size=512, epochs=30,
           validation_data=(X_test, Y_test),
           callbacks = [ModelCheckpoint(OutputDir + "/model_checkpoint_save.hdf5")],
           shuffle=True,verbose=1)

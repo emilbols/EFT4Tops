@@ -203,12 +203,12 @@ def drawTrainingCurve(input,output):
 
 gROOT.SetBatch(1)
 
-OutputDir = 'model_RNN_leftright_limited'
-Y = np.load('numpy_array/truth.npy')    
-X_jets = np.load('numpy_array/features_jet.npy')
-X_mu = np.load('numpy_array/features_mu.npy')
-X_el = np.load('numpy_array/features_el.npy')
-X_flat = np.load('numpy_array/features_flat.npy')
+OutputDir = 'model_RNN_train_on_interference'
+Y = np.load('train_samples_preprocessed/truth.npy')    
+X_jets = np.load('train_samples_preprocessed/features_jet.npy')
+X_mu = np.load('train_samples_preprocessed/features_mu.npy')
+X_el = np.load('train_samples_preprocessed/features_el.npy')
+X_flat = np.load('train_samples_preprocessed/features_flat.npy')
 print X_jets.shape
 print Y.shape
 SM = (Y == 0) 
@@ -219,16 +219,16 @@ Y[left] = 1
 Y[leftright] = 2
 Y[right] = 3
 
-cut = len(Y[SM])/2
-Y = Y[cut:]
-SM = (Y == 0) 
-left = ((Y == 1))
-leftright = ((Y == 2))
-right = ((Y == 3))
-X_jets = X_jets[cut:]
-X_mu = X_mu[cut:]
-X_el = X_el[cut:]
-X_flat = X_flat[cut:]
+#cut = int(len(Y[SM])*0.63)
+#Y = Y[cut:]
+#SM = (Y == 0) 
+#left = ((Y == 1))
+#leftright = ((Y == 2))
+#right = ((Y == 3))
+#X_jets = X_jets[cut:]
+#X_mu = X_mu[cut:]
+#X_el = X_el[cut:]
+#X_flat = X_flat[cut:]
 print len(Y)
 print len(Y[SM])
 print len(Y[left])
@@ -255,7 +255,7 @@ X_jets_train, X_jets_test,X_mu_train, X_mu_test,X_el_train, X_el_test,X_flat_tra
 
 adam = Adam(lr=0.005, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 
-dropoutRate = 0.2
+dropoutRate = 0.15
 
 Inputs = [Input(shape=(8,5)),Input(shape=(3,5)),Input(shape=(3,5)),Input(shape=(13,))]
 
@@ -277,9 +277,11 @@ leps = Dropout(dropoutRate)(leps)
 x = Concatenate()( [globalvars,jets,leps])
 x = Dense(200,activation='relu',kernel_initializer='lecun_uniform',name='dense_0')(x)
 x = Dropout(dropoutRate)(x)
-x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_1')(x)
+x = Dense(200,activation='relu',kernel_initializer='lecun_uniform',name='dense_1')(x)
 x = Dropout(dropoutRate)(x)
 x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_2')(x)
+x = Dropout(dropoutRate)(x)
+x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_3')(x)
 x = Dropout(dropoutRate)(x)
 pred=Dense(nclasses, activation='softmax',kernel_initializer='lecun_uniform',name='ID_pred')(x)
 
@@ -291,7 +293,7 @@ X_train = [X_jets_train,X_mu_train, X_el_train, X_flat_train]
 X_test = [X_jets_test,X_mu_test,X_el_test,X_flat_test]
 
 train_history = model.fit(X_train, Y_train,
-          batch_size=512, epochs=30,
+          batch_size=256, epochs=200,
           validation_data=(X_test, Y_test),
           callbacks = [ModelCheckpoint(OutputDir + "/model_checkpoint_save.hdf5")],
           shuffle=True,verbose=1)

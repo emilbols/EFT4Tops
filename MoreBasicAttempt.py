@@ -203,7 +203,7 @@ def drawTrainingCurve(input,output):
 
 gROOT.SetBatch(1)
 
-OutputDir = 'model_RNN_leftright_limited'
+OutputDir = 'model_leftright_Basic'
 Y = np.load('numpy_array/truth.npy')    
 X_jets = np.load('numpy_array/features_jet.npy')
 X_mu = np.load('numpy_array/features_mu.npy')
@@ -263,23 +263,13 @@ jets = BatchNormalization(momentum=0.6,name='jets_input_batchnorm') (Inputs[0])
 muons = BatchNormalization(momentum=0.6,name='muons_input_batchnorm')     (Inputs[1])
 elec = BatchNormalization(momentum=0.6,name='elec_input_batchnorm')     (Inputs[2])
 globalvars = BatchNormalization(momentum=0.6,name='globalvars_input_batchnorm')     (Inputs[3])
-
-
-
-
-jets  = LSTM(100, kernel_initializer='lecun_uniform',  activation='relu', recurrent_dropout=dropoutRate, go_backwards=True, name='jets_lstm')(jets)
-jets = Dropout(dropoutRate)(jets)
-
-leps = Concatenate()([muons,elec])
-leps = LSTM(100, kernel_initializer='lecun_uniform',  activation='relu', recurrent_dropout=dropoutRate, go_backwards=True, name='leps_lstm')(leps)
-leps = Dropout(dropoutRate)(leps)
-
-x = Concatenate()( [globalvars,jets,leps])
-x = Dense(200,activation='relu',kernel_initializer='lecun_uniform',name='dense_0')(x)
+jets = Flatten()(jets)
+elec = Flatten()(elec)
+muons = Flatten()(muons)
+x = Concatenate()( [globalvars,jets,muons,elec])
+x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_0')(x)
 x = Dropout(dropoutRate)(x)
 x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_1')(x)
-x = Dropout(dropoutRate)(x)
-x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_2')(x)
 x = Dropout(dropoutRate)(x)
 pred=Dense(nclasses, activation='softmax',kernel_initializer='lecun_uniform',name='ID_pred')(x)
 
@@ -291,7 +281,7 @@ X_train = [X_jets_train,X_mu_train, X_el_train, X_flat_train]
 X_test = [X_jets_test,X_mu_test,X_el_test,X_flat_test]
 
 train_history = model.fit(X_train, Y_train,
-          batch_size=512, epochs=30,
+          batch_size=512, epochs=40,
           validation_data=(X_test, Y_test),
           callbacks = [ModelCheckpoint(OutputDir + "/model_checkpoint_save.hdf5")],
           shuffle=True,verbose=1)
