@@ -64,6 +64,17 @@ NN_dict={}
 for idx,c in enumerate(couplings_NN):
     NN_dict[c]=[lower_limits_NN[idx],upper_limits_NN[idx]]
 
+
+file_infer = open("XsecPlots/outputxsec_discrim_target.txt","r")
+lines_infer = file_infer.readlines()
+couplings_infer = [l.split(",")[0] for l in lines_infer]
+lower_limits_infer = [float(l.split(",")[1]) for l in lines_infer]
+upper_limits_infer = [float(l.split(",")[2]) for l in lines_infer]
+infer_dict={}
+for idx,c in enumerate(couplings_infer):
+    infer_dict[c]=[lower_limits_infer[idx],upper_limits_infer[idx]]
+
+    
 n_couplings = len(couplings_tttt)
 offset_tttt = 2*(1./float(n_couplings))/6
 offset_xsec = 3*(1./float(n_couplings))/6
@@ -75,6 +86,9 @@ y_errpos_tttt = array("d",[0]*n_couplings)
 y_errpos_xsec = array("d",[0]*n_couplings)
 y_errpos_NN = array("d",[0]*n_couplings)
 
+offset_infer = 5*(1./float(n_couplings))/6
+y_pos_infer = array("d",[float(i)/float(n_couplings)+offset_infer for i in range(n_couplings)])
+y_errpos_infer = array("d",[0]*n_couplings)
 #print couplings_tttt
 
 
@@ -105,6 +119,11 @@ for i in range(n_couplings):
 # for coupling,limits in NN_dict.iteritems():
 #     x_NN.append(np.mean(np.asarray(limits)))
 #     ex_NN.append(limits[1]-np.mean(np.asarray(limits)))
+x_infer = array("d")
+ex_infer = array("d")
+for i in range(n_couplings):
+    x_infer.append(np.mean(np.asarray(infer_dict[showing_order[i]])))
+    ex_infer.append(infer_dict[showing_order[i]][1]-np.mean(np.asarray(infer_dict[showing_order[i]])))
 
     
 c = TCanvas("c","c",300,600)
@@ -146,11 +165,25 @@ gr_NN.GetXaxis().SetLabelSize(0.05)
 gr_NN.GetXaxis().SetRangeUser(-15,15)
 gr_NN.GetYaxis().SetRangeUser(-0.2,1.2)
 
+gr_infer = TGraphErrors(n_couplings,x_infer,y_pos_infer,ex_infer,y_errpos_infer)
+gr_infer.SetTitle("")
+gr_infer.SetLineColor(kViolet)
+gr_infer.SetLineWidth(2)
+gr_infer.SetMarkerSize(0)
+gr_infer.SetMarkerColor(kViolet)
+gr_infer.Draw("APE1same")
+gr_infer.GetXaxis().SetLabelSize(0.05)
+gr_infer.GetXaxis().SetRangeUser(-15,15)
+gr_infer.GetYaxis().SetRangeUser(-0.2,1.2)
+
+
+
 mg = TMultiGraph("mg","mg")
 mg.SetTitle("")
 mg.Add(gr_tttt)
 mg.Add(gr_xsec)
 mg.Add(gr_NN)
+mg.Add(gr_infer)
 mg.Draw("APE1")
 mg.GetYaxis().SetTickSize(0)
 mg.GetYaxis().SetLabelSize(0)
@@ -190,6 +223,7 @@ l.SetFillColor(0)
 l.SetFillStyle(1001)
 l.SetTextSize(0.037)
 l.AddEntry(gr_NN,"neural network (2#sigma)","l")
+l.AddEntry(gr_infer,"neural network with interference (2#sigma)","l")
 l.AddEntry(gr_xsec,"H_{t} cut (2#sigma)","l")
 l.AddEntry(gr_tttt,"pure cross section (2#sigma)","l")
 l.Draw("same")

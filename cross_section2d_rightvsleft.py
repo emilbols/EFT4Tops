@@ -92,8 +92,8 @@ def makeDiscr(discr_dict,outfile,xtitle="discriminator",nbins=30,x_min=0,x_max=1
     c.SaveAs(outfile)
 
 #samples = ['cQQ1']
-out_dir = 'XsecContours/'
-samples = ['cQQ1','cQt1']
+out_dir = 'XsecContours_cQQ1_ctt1/'
+samples = ['cQQ1','ctt1']
 #samples = ['cQQ1']
 couplings = ['-3','-2','-1','0','+1','+2','+3']
 #couplings = ['-3','-1','0','+1','+3']
@@ -130,10 +130,10 @@ classes_dict = {
 #xsec_error = [0.00001,0.00001,0.00001,0.00001,0.00000000000001,0.00001,0.00001,0.00001,0.00001] # pb
 xsec_frac_error = 0.01
 n=0
-input_dir = 'inference_samples_two_preprocessed/'
+input_dir = 'inference_samples_cQQ1_ctt1_preprocessed/'
 frac_syst = 0.5
-x_sec = np.load('cross_interference/cross_section.npy')
-#x_sec = np.load('cQQ1_ctt1_inference_cross/cross_section.npy')
+#x_sec = np.load('cross_interference/cross_section.npy')
+x_sec = np.load('cQQ1_ctt1_inference_cross/cross_section.npy')
 
 
 n=0

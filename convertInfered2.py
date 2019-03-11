@@ -184,7 +184,7 @@ def make_model(input_dim, nb_classes, nb_hidden_layers = 3, nb_neurons = 100,mom
 
 gROOT.SetBatch(1)
 
-InputDir = 'inference_samples_three'
+InputDir = 'inference_samples_cQQ1_ctt1'
 classes_dict = { #name:class_number 
         'SM': 0,
         #LLLL
@@ -268,11 +268,11 @@ for bbp in coupling:
                                                 Z_mu[a,0:len(X_mu[a,b].tolist()),b] = X_mu[a,b][:max_mu].tolist()
 
                                                                 
-                                np.save('inference_samples_three_preprocessed/'+name+'features_jet.npy',Z_jets)
-                                np.save('inference_samples_three_preprocessed/'+name+'features_mu.npy',Z_mu)
-                                np.save('inference_samples_three_preprocessed/'+name+'features_el.npy',Z_el)
-                                np.save('inference_samples_three_preprocessed/'+name+'features_flat.npy',Z_flat)
-                                np.save('inference_samples_three_preprocessed/'+name+'truth.npy',Z_Y)
+                                np.save('inference_samples_cQQ1_ctt1_preprocessed/'+name+'features_jet.npy',Z_jets)
+                                np.save('inference_samples_cQQ1_ctt1_preprocessed/'+name+'features_mu.npy',Z_mu)
+                                np.save('inference_samples_cQQ1_ctt1_preprocessed/'+name+'features_el.npy',Z_el)
+                                np.save('inference_samples_cQQ1_ctt1_preprocessed/'+name+'features_flat.npy',Z_flat)
+                                np.save('inference_samples_cQQ1_ctt1_preprocessed/'+name+'truth.npy',Z_Y)
 
 
 

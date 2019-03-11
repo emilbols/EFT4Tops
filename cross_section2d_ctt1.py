@@ -93,17 +93,17 @@ def makeDiscr(discr_dict,outfile,xtitle="discriminator",nbins=30,x_min=0,x_max=1
 
 #samples = ['cQQ1']
 out_dir = 'XsecContours/'
-samples = ['cQQ1','cQt1']
+samples = ['cQQ1','ctt1']
 #samples = ['cQQ1']
 couplings = ['-3','-2','-1','0','+1','+2','+3']
 #couplings = ['-3','-1','0','+1','+3']
 #model = load_model('RNN_multiclass/model_checkpoint_save.hdf5')
 #wp = 0.55  #0.5506506
-wp_specific1 = 0.85
-wp_specific2 = 0.85
-wp_lvsr = 0.4
+wp_specific1 = 0.7
+wp_specific2 = 0.7
+wp_lvsr = 0.8
 #wp_cut = 900 #0.6999969090965289
-wp = 0.85
+wp = 0.8
 wp_cut = 1200
 lum = 302.3*1000.0 # pb^-1
 #lum = 1.0 # pb^-1
@@ -128,13 +128,15 @@ classes_dict = {
 
 #x_sec = {'cQQ1': [0.01541,0.003964,0.001164,0.0002886,0.0002575,0.0003095,0.00127,0.004182,0.0155],'cQQ8': [0.001889, 0.0006504, 0.0003482, 0.0002612, 0.0002575, 0.0002679, 0.0003825, 0.0007219, 0.001978],'cQt1': [0.02115, 0.005472, 0.001567, 0.0003145, 0.0002575, 0.0003105, 0.001553, 0.005465, 0.02112], 'cQt8': [0.005063, 0.00141, 0.0005217, 0.0002623,0.0002575, 0.0002842, 0.0006235, 0.001619, 0.005482], 'ctt1': [0.06074, 0.01526, 0.003965, 0.0003928,0.0002575,0.0004321,0.004174,0.01562,0.06168]} # pb
 #xsec_error = [0.00001,0.00001,0.00001,0.00001,0.00000000000001,0.00001,0.00001,0.00001,0.00001] # pb
-xsec_frac_error = 0.01
+xsec_frac_error = 0.0001
 n=0
-input_dir = 'inference_samples_two_preprocessed/'
+input_dir = 'inference_samples_three_preprocessed/'
 frac_syst = 0.5
-x_sec = np.load('cross_interference/cross_section.npy')
-#x_sec = np.load('cQQ1_ctt1_inference_cross/cross_section.npy')
+#x_sec = np.load('cross_interference/cross_section.npy')
+x_sec = np.load('cQQ1_ctt1_inference_cross/cross_section.npy')
 
+#model_name = 'prediction_inference_model'
+model_name = 'prediction_rightleft'
 
 n=0
 uncs = {'xsec': 0.0,'xsec_discrim': 0.0, 'xsec_discrim_sr1': 0.0,'xsec_discrim_sr2': 0.0, 'xsec_cut': 0.0}
@@ -158,16 +160,14 @@ for z in couplings:
                         if z is not '0' or k is not '0':
                                     name = samples[0]+'_'+z+'_'+samples[1]+'_'+k
                                     X_flat = np.load(input_dir+name+'features_flat.npy')
-                                    discr_dict = np.load(input_dir+name+'prediction_inference_model.npy')
-				    discr_dict2 = np.load(input_dir+name+'prediction_rightleft.npy')
-				    discr_spec = 1-discr_dict2[:,0]
+                                    discr_dict = np.load(input_dir+name+model_name+'.npy')
                                     discr = 1-discr_dict[:,0]
-                                    discr_left = (discr_dict2[:,classes_dict['cQQ1']])/(1-discr_dict2[:,0]-discr_dict2[:,3])
-				    discr_right = ( discr_dict2[:,classes_dict['cQt1']] )/(1-discr_dict2[:,0]-discr_dict2[:,3])
+                                    discr_left = (discr_dict[:,classes_dict['cQQ1']])/(1-discr_dict[:,0]-discr_dict[:,2])
+				    discr_right = ( discr_dict[:,classes_dict['ctt1']] )/(1-discr_dict[:,0]-discr_dict[:,2])
                                     #discr_specific1 = (discr_dict[:,classes_dict['cQQ1']])/(discr_dict[:,classes_dict['cQQ1']]+discr_dict[:,0])
 				    #discr_specific2 = ( discr_dict[:,classes_dict['cQt1']] )/(discr_dict[:,classes_dict['cQt1']]+discr_dict[:,0])
-                                    SR1 = (discr_left > wp_lvsr) & (discr_spec > wp_specific1)
-                                    SR2 = (discr_left < wp_lvsr) & (discr_spec > wp_specific2)
+                                    SR1 = (discr_left > wp_lvsr) & (discr > wp_specific1)
+                                    SR2 = (discr_left < wp_lvsr) & (discr > wp_specific2)
                                     #SR1 = (discr_specific1 > wp_specific1)
                                     #SR2 = (discr_specific2 > wp_specific2)
                                     sample_size = discr.shape[0]
@@ -183,16 +183,14 @@ for z in couplings:
                                     n+=1
                         else:
                                     X_flat = np.load('SM_only/features_flat.npy')
-                                    discr_dict = np.load('SM_only/prediction_inference_model.npy')
-				    discr_dict2 = np.load('SM_only/prediction_rightleft.npy')	
-				    discr_spec = 1-discr_dict2[:,0]
+                                    discr_dict = np.load('SM_only/'+model_name+'.npy')
                                     discr = 1-discr_dict[:,0]
-                                    discr_left = (discr_dict2[:,classes_dict['cQQ1']])/(1-discr_dict2[:,0]-discr_dict2[:,3])
-				    discr_right = ( discr_dict2[:,classes_dict['cQt1']] )/(1-discr_dict2[:,0]-discr_dict2[:,3])
+                                    discr_left = (discr_dict[:,classes_dict['cQQ1']])/(1-discr_dict[:,0]-discr_dict[:,2])
+				    discr_right = ( discr_dict[:,classes_dict['ctt1']] )/(1-discr_dict[:,0]-discr_dict[:,2])
                                     discr_specific1 = (discr_dict[:,classes_dict['cQQ1']])/(discr_dict[:,classes_dict['cQQ1']]+discr_dict[:,0])
-				    discr_specific2 = ( discr_dict[:,classes_dict['cQt1']] )/(discr_dict[:,classes_dict['cQt1']]+discr_dict[:,0])
-                                    SR1 = (discr_left > wp_lvsr) & (discr_spec > wp_specific1)
-                                    SR2 = (discr_left < wp_lvsr) & (discr_spec > wp_specific2)
+				    discr_specific2 = ( discr_dict[:,classes_dict['ctt1']] )/(discr_dict[:,classes_dict['ctt1']]+discr_dict[:,0])
+                                    SR1 = (discr_left > wp_lvsr) & (discr > wp_specific1)
+                                    SR2 = (discr_left < wp_lvsr) & (discr > wp_specific2)
                                     #SR1 = (discr_specific1 > wp_specific1)
                                     #SR2 = (discr_specific2 > wp_specific2)
                                     sample_size = discr.shape[0]
@@ -234,11 +232,11 @@ print coupling_strengths2
 print xsec_discs
 print xsec_cut
 
-SM_discr_dict = np.load('SM_only/prediction_inference_model.npy')
+SM_discr_dict = np.load('SM_only/'+model_name+'.npy')
 SM_discr = 1-SM_discr_dict[:,0]
-rEFT_discr_dict = np.load('inference_samples_three_preprocessed/cQQ1_0_ctt1_-3prediction_inference_model.npy')
+rEFT_discr_dict = np.load('inference_samples_three_preprocessed/cQQ1_0_ctt1_-3'+model_name+'.npy')
 rEFT_discr = 1-rEFT_discr_dict[:,0]
-lEFT_discr_dict = np.load('inference_samples_three_preprocessed/cQQ1_-3_ctt1_0prediction_inference_model.npy')
+lEFT_discr_dict = np.load('inference_samples_three_preprocessed/cQQ1_-3_ctt1_0'+model_name+'.npy')
 lEFT_discr = 1-lEFT_discr_dict[:,0]
 
 SM_discr_spec = SM_discr_dict[:,1]/(SM_discr_dict[:,1]+SM_discr_dict[:,3])

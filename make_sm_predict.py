@@ -51,7 +51,7 @@ out_dir = 'XsecContours/'
 samples = ['cQQ1','cQt1']
 #samples = ['cQQ1']
 couplings = ['-3','-2','-1','0','+1','+2','+3']
-model = load_model('model_leftright_Basic/model_checkpoint_save.hdf5')
+model = load_model('model_RNN_train_on_interference_deeper//model_checkpoint_save.hdf5')
 #wp = 0.55  #0.5506506
 wp_specific = 0.5
 wp_lvsr = 0.5
@@ -106,4 +106,4 @@ for z in couplings:
                                     X_flat = np.load('SM_only/features_flat.npy')
                                     X = [X_jets,X_mu,X_el,X_flat]
                                     discr_dict = model.predict(X,batch_size=256)
-                                    np.save('SM_only/prediction_leftright_Basic.npy',discr_dict)
+                                    np.save('SM_only/prediction_inference_deep_model.npy',discr_dict)

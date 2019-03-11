@@ -73,7 +73,7 @@ x_sec = {'cQQ1': [0.01541,0.003964,0.001164,0.0002886,0.0002575,0.0003095,0.0012
 #xsec_error = [0.00001,0.00001,0.00001,0.00001,0.00000000000001,0.00001,0.00001,0.00001,0.00001] # pb
 xsec_frac_error = 0.01
 n=0
-input_dir = 'inference_samples_three_preprocessed/'
+input_dir = 'inference_samples_cQQ1_ctt1_preprocessed/'
 frac_syst = 0.5
 
 x_sec = np.load('cQQ1_ctt1_inference_cross/cross_section.npy')

@@ -249,13 +249,13 @@ scaler = StandardScaler()
 #X_flat = scaler.fit_transform(X_flat)
 
 
-X_jets_train, X_jets_test,X_mu_train, X_mu_test,X_el_train, X_el_test,X_flat_train, X_flat_test, Y_train, Y_test, y_train, y_test = train_test_split(X_jets,X_mu,X_el,X_flat, Y, labels, test_size=0.2, random_state = 930607)
+X_jets_train, X_jets_test,X_mu_train, X_mu_test,X_el_train, X_el_test,X_flat_train, X_flat_test, Y_train, Y_test, y_train, y_test = train_test_split(X_jets,X_mu,X_el,X_flat, Y, labels, test_size=0.2, random_state = 19930607)
 
     
 
-adam = Adam(lr=0.005, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+adam = Adam(lr=0.0015, beta_1=0.91, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 
-dropoutRate = 0.15
+dropoutRate = 0.2
 
 Inputs = [Input(shape=(8,5)),Input(shape=(3,5)),Input(shape=(3,5)),Input(shape=(13,))]
 
@@ -283,6 +283,8 @@ x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_2
 x = Dropout(dropoutRate)(x)
 x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_3')(x)
 x = Dropout(dropoutRate)(x)
+x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_4')(x)
+x = Dropout(dropoutRate)(x)
 pred=Dense(nclasses, activation='softmax',kernel_initializer='lecun_uniform',name='ID_pred')(x)
 
 model = Model(inputs=Inputs,outputs=pred)
@@ -293,7 +295,7 @@ X_train = [X_jets_train,X_mu_train, X_el_train, X_flat_train]
 X_test = [X_jets_test,X_mu_test,X_el_test,X_flat_test]
 
 train_history = model.fit(X_train, Y_train,
-          batch_size=256, epochs=200,
+          batch_size=256, epochs=100,
           validation_data=(X_test, Y_test),
           callbacks = [ModelCheckpoint(OutputDir + "/model_checkpoint_save.hdf5")],
           shuffle=True,verbose=1)

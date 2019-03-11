@@ -51,15 +51,15 @@ out_dir = 'XsecPlots/'
 samples = ['cQQ1','cQQ8','cQt1','cQt8','ctt1']
 #samples = ['cQQ1']
 couplings = ['-20','-10','-5','-1','0','+1','+5','+10','+20']
-model = load_model('model_leftright_more_regularized/model_checkpoint_save.hdf5')
-wp = 0.7  #0.5506506
+#model = load_model('m/model_checkpoint_save.hdf5')
+wp = 0.8  #0.5506506
 wp_specific = 0.385
 #wp_cut = 900 #0.6999969090965289
-#wp_list = [0.1,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9]
+wp_list = [0.1,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9]
 #wp_list = np.arange(0.55,0.75,0.01)
-#wp_cut = 1200
+wp_cut = 1200
 #wp_list = np.arange(600,2000,50)
-wp_list = [1200]
+#wp_list = [1200]
 lum = 302.3*1000.0 # pb^-1
 #lum = 1.0 # pb^-1
 
@@ -80,9 +80,9 @@ best_wp = {'cQQ1':0.0,'ctt1':0.0,'cQt8':0.0,'cQt1':0.0,'cQQ8':0.0}
 xsec_frac_error = 0.01
 n=0
 input_dir = 'inference_samples_preprocessed/'
-frac_syst = 0.1
+frac_syst = 0.5
 #wp = 0.7
-for wp_cut in wp_list:
+for wp in wp_list:
    for sample in samples:
               n=0
               uncs = {'xsec': 0.0,'xsec_discrim': 0.0, 'xsec_discrim_target': 0.0, 'xsec_cut': 0.0}
@@ -97,7 +97,7 @@ for wp_cut in wp_list:
                           if z is not '0':
                                       name = sample+z
                                       X_flat = np.load(input_dir+name+'features_flat.npy')
-                                      discr_dict = np.load(input_dir+name+'prediction_leftright_Basic.npy')
+                                      discr_dict = np.load(input_dir+name+'prediction_inference_model.npy')
                                       discr = 1-discr_dict[:,0]
                                       discr_target = discr_dict[:,classes_dict[sample]]/(discr_dict[:,classes_dict[sample]]+discr_dict[:,0])
                                       sample_size = discr.shape[0]
@@ -109,7 +109,8 @@ for wp_cut in wp_list:
                                       events_coupling.append(int(z))
                                       n+=1
                           else:
-                                      discr_dict =np.load(input_dir+name+'prediction_leftright_Basic.npy')
+                                      X_flat = np.load('SM_only/features_flat.npy')
+                                      discr_dict =np.load('SM_only/prediction_inference_model.npy')
                                       discr = 1-discr_dict[:,0]
                                       discr_target = discr_dict[:,classes_dict[sample]]/(discr_dict[:,classes_dict[sample]]+discr_dict[:,0])
                                       sample_size = discr.shape[0]
@@ -135,7 +136,7 @@ for wp_cut in wp_list:
               xsec_discs_target = np.asarray(events_discs_target)
               xsec_cut = np.asarray(events_cut)
               coupling_strengths = np.asarray(events_coupling)
-              objects = {'xsec_cut': xsec_cut}
+              objects = {'xsec_discrim': xsec_discs}
 
               for name_sec,xsec in objects.items():
                           xsec_error = xsec_frac_error*xsec
@@ -164,10 +165,10 @@ for wp_cut in wp_list:
                           f = open(out_dir+'output'+name_sec+'.txt', 'a')
                           if limits[name_sec][0] > best_limit1[sample]:
                                       best_limit1[sample] = limits[name_sec][0]
-                                      best_wp[sample] = wp_cut
+                                      best_wp[sample] = wp
                           if limits[name_sec][-1] < best_limit2[sample]:
                                       best_limit2[sample] = limits[name_sec][-1]
-                                      best_wp[sample] = wp_cut
+                                      best_wp[sample] = wp
                           f.write(sample+','+str(limits[name_sec][0])+','+str(limits[name_sec][-1])+'\n')
 
 print best_limit1

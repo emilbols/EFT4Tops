@@ -22,7 +22,7 @@ from numpy.lib.recfunctions import stack_arrays
 from sklearn.preprocessing import StandardScaler
 from keras.models import load_model
 from sklearn.metrics import roc_curve,roc_auc_score
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 import pickle
 from rootpy.plotting import Hist
 
@@ -204,7 +204,7 @@ for c in couplings:
         #SM_chain = TChain("")
         #C1tu_chain = TChain("")
         
-chain_dict["SM"].Add(InputDir + "/SM_merge_tag_1_delphes_events.root")
+#chain_dict["SM"].Add(InputDir + "/SM_merge_tag_1_delphes_events.root")
                 
 for f in files:
         if "SM" not in f:
@@ -260,11 +260,11 @@ for a in range(0,X_mu.shape[0]):
                 Z_mu[a,0:len(X_mu[a,b].tolist()),b] = X_mu[a,b][:max_mu].tolist()
                 
 
-np.save('numpy_array/features_jet.npy',Z_jets)
-np.save('numpy_array/features_mu.npy',Z_mu)
-np.save('numpy_array/features_el.npy',Z_el)
-np.save('numpy_array/features_flat.npy',Z_flat)
-np.save('numpy_array/truth.npy',Z_Y)
+np.save('BigMerge/features_jet.npy',Z_jets)
+np.save('BigMerge/features_mu.npy',Z_mu)
+np.save('BigMerge/features_el.npy',Z_el)
+np.save('BigMerge/features_flat.npy',Z_flat)
+np.save('BigMerge/truth.npy',Z_Y)
 
 
 
