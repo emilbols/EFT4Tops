@@ -184,11 +184,15 @@ def make_model(input_dim, nb_classes, nb_hidden_layers = 3, nb_neurons = 100,mom
 
 gROOT.SetBatch(1)
 
-InputDir = 'new_merge'
+InputDir = 'inference_samples'
 classes_dict = { #name:class_number 
         'SM': 0,
         #LLLL
-        "Coupling": 1
+        'ctt1' : 1,
+        'cQQ1' : 2,
+        'cQQ8' : 3,
+        'cQt1' : 4,
+        'cQt8' : 5
 }
 
 couplings = classes_dict.keys()
@@ -203,29 +207,35 @@ for c in couplings:
         chain_dict.update({c:TChain("tree")})
         #SM_chain = TChain("")
         #C1tu_chain = TChain("")
-        
-chain_dict["SM"].Add(InputDir + "/SM_merge_tag_1_delphes_events.root")
-                
-                
-branchnames = [i.GetName() for i in chain_dict["SM"].GetListOfBranches()]
-print branchnames, len(branchnames)
+
+namelist = ['cQQ1','cQQ8','cQt1','cQt8','ctt1']
+coupling = ['-20','-10','-5','-1','+1','+5','+10','+20']
+for gdp in namelist:
+        for bbp in coupling:
+                name = gdp+bbp
+                #chain_dict["SM"].Add(InputDir + "/SM_merge_tag_1_delphes_events.root")
+                file_check = ROOT.TChain("tree")
+                for f in files:
+                        if name in f:
+                                file_check.Add(InputDir + "/" + f)
+                        
+                                branchnames = [i.GetName() for i in file_check.GetListOfBranches()]
+                                print branchnames, len(branchnames)
+                        
+                flat_branch = ['m_l1j1', 'deltaPhi_l1j1', 'H_T', 'm_l1j2', 'm_l1l2', 'Nleps', 'H_Tratio', 'deltaEta_l1l2', 'pT_j1', 'pT_j2', 'Nbtags', 'Wcands', 'deltaPhi_j1j2', 'Nlooseb', 'q1', 'Ntightb', 'H_Tb', 'Njets', 'mT_l2', 'mT_l1', 'MET', 'm_j1j2']
+
+                truthbranch = ['class']
+
+                data_dict = {}
+
+                Y = rootnp.tree2array(file_check,branches = truthbranch)
+                Z_Y = rootnp.rec2array(Y)
+
+                flat = rootnp.tree2array(file_check,branches = flat_branch)
+                Z_flat = rootnp.rec2array(flat)
+
+                np.save('inference_samples_preprocessed_highlevel/'+name+'features_flat.npy',Z_flat)
+                np.save('inference_samples_preprocessed_highlevel/'+name+'truth.npy',Z_Y)
 
 
-flat_branch = ['m_l1j1', 'deltaPhi_l1j1', 'H_T', 'm_l1j2', 'm_l1l2', 'Nleps', 'H_Tratio', 'deltaEta_l1l2', 'pT_j1', 'pT_j2', 'Nbtags', 'Wcands', 'deltaPhi_j1j2', 'Nlooseb', 'q1', 'Ntightb', 'H_Tb', 'Njets', 'mT_l2', 'mT_l1', 'MET', 'm_j1j2']
-
-truthbranch = ['class']
-
-data_dict = {}
-
-Y = rootnp.tree2array(chain_dict["SM"],branches = truthbranch)
-Z_Y = rootnp.rec2array(Y)
-
-flat = rootnp.tree2array(chain_dict["SM"],branches = flat_branch)
-Z_flat = rootnp.rec2array(flat)
-
-np.save('SM_only_highlevel/features_flat.npy',Z_flat)
-np.save('SM_only_highlevel/truth.npy',Z_Y)
-model = load_model('Model_denseBased_highlevel/model_checkpoint_save.hdf5')
-discr_dict = model.predict(Z_flat,batch_size=126)
-np.save('SM_only_highlevel/prediction.npy',discr_dict)
 

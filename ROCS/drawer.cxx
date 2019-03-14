@@ -82,7 +82,7 @@ void drawer(){
   files[0] = TFile::Open("Shallow_highlevel.root");
   files[1] = TFile::Open("Dense_highlevel.root"); 
   files[2] = TFile::Open("dense_multiinput.root"); 
-  files[3] = TFile::Open("is_this_correct_dense.root"); // a
+  files[3] = TFile::Open("conv_multiinput.root"); // a
   files[4] = TFile::Open("RNN_moreComplex_not_sorted.root"); //RNN_sorted.root
   files[5] = TFile::Open("RNN_big_multiclass.root"); //
 
@@ -117,8 +117,8 @@ void drawer(){
   graphcvsb[3]->SetLineColor(kOrange);
   graphlvsb[4]->SetLineColor(kBlack);
   graphcvsb[4]->SetLineColor(kBlack);
-  graphlvsb[5]->SetLineColor(kRed);
-  graphcvsb[5]->SetLineColor(kRed);
+  //graphlvsb[5]->SetLineColor(kRed);
+  //graphcvsb[5]->SetLineColor(kRed);
 
 
   TCanvas *c1 = new TCanvas("c1", "ROCS",50,50,1200,900);
@@ -133,7 +133,7 @@ void drawer(){
   graphcvsb[2]->Draw("same");
   graphcvsb[3]->Draw("same");
   graphcvsb[4]->Draw("same");
-  graphcvsb[5]->Draw("same");
+  // graphcvsb[5]->Draw("same");
 
   graphcvsb[0]->GetXaxis()->SetRangeUser(0.0,1.0);
   graphcvsb[0]->GetYaxis()->SetRangeUser(0.0005,1);
@@ -146,7 +146,7 @@ void drawer(){
   legend1->AddEntry(graphlvsb[2],"Dense - more input","l");
   legend1->AddEntry(graphlvsb[3],"conv - more input","l");
   legend1->AddEntry(graphlvsb[4],"RNN","l");
-  legend1->AddEntry(graphlvsb[5],"RNN multiclass","l");
+  //  legend1->AddEntry(graphlvsb[5],"RNN multiclass","l");
   legend1->Draw();  
 
   TCanvas *c9 = new TCanvas("c9", "ROCS",50,50,1200,900);
@@ -161,9 +161,9 @@ void drawer(){
   graphlvsb[2]->Draw("same");
   graphlvsb[3]->Draw("same");
   graphlvsb[4]->Draw("same");
-  graphlvsb[5]->Draw("same");
+  // graphlvsb[5]->Draw("same");
   cut_based->Draw("same");
-  feature->Draw("same");
+  //feature->Draw("same");
   
   graphlvsb[0]->GetXaxis()->SetRangeUser(0.0,1.0);
   graphlvsb[0]->GetYaxis()->SetRangeUser(0.0005,1);

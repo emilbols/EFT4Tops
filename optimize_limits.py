@@ -52,12 +52,12 @@ samples = ['cQQ1','cQQ8','cQt1','cQt8','ctt1']
 #samples = ['cQQ1']
 couplings = ['-20','-10','-5','-1','0','+1','+5','+10','+20']
 #model = load_model('m/model_checkpoint_save.hdf5')
-wp = 0.8  #0.5506506
-wp_specific = 0.385
+wp = 0.78  #0.5506506
+#wp_specific = 0.385
 #wp_cut = 900 #0.6999969090965289
-wp_list = [0.1,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9]
+wp_list = np.arange(0.45,0.95,0.01)
 #wp_list = np.arange(0.55,0.75,0.01)
-wp_cut = 1200
+wp_cut = 1450
 #wp_list = np.arange(600,2000,50)
 #wp_list = [1200]
 lum = 302.3*1000.0 # pb^-1
@@ -82,7 +82,7 @@ n=0
 input_dir = 'inference_samples_preprocessed/'
 frac_syst = 0.5
 #wp = 0.7
-for wp in wp_list:
+for wp_specific in wp_list:
    for sample in samples:
               n=0
               uncs = {'xsec': 0.0,'xsec_discrim': 0.0, 'xsec_discrim_target': 0.0, 'xsec_cut': 0.0}
@@ -136,7 +136,7 @@ for wp in wp_list:
               xsec_discs_target = np.asarray(events_discs_target)
               xsec_cut = np.asarray(events_cut)
               coupling_strengths = np.asarray(events_coupling)
-              objects = {'xsec_discrim': xsec_discs}
+              objects = {'xsec_discrim_target': xsec_discs_target}
 
               for name_sec,xsec in objects.items():
                           xsec_error = xsec_frac_error*xsec
@@ -160,15 +160,15 @@ for wp in wp_list:
                           for i in ba:
                                       p = coeff[0]*(1 + coeff[1]*i + coeff[2]*i*i)
                                       test = (p-coeff[0])**2/((uncs[name_sec])**2)
-                                      if np.abs(test - 2.6896) < 0.1:
+                                      if np.abs(test - 3.84) < 0.1:
                                                   limits[name_sec].append(i)
                           f = open(out_dir+'output'+name_sec+'.txt', 'a')
                           if limits[name_sec][0] > best_limit1[sample]:
                                       best_limit1[sample] = limits[name_sec][0]
-                                      best_wp[sample] = wp
+                                      best_wp[sample] = wp_specific
                           if limits[name_sec][-1] < best_limit2[sample]:
                                       best_limit2[sample] = limits[name_sec][-1]
-                                      best_wp[sample] = wp
+                                      best_wp[sample] = wp_specific
                           f.write(sample+','+str(limits[name_sec][0])+','+str(limits[name_sec][-1])+'\n')
 
 print best_limit1

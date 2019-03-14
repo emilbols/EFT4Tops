@@ -15,6 +15,8 @@ import numpy as np
 from collections import Counter
 import root_numpy as rootnp
 import matplotlib.pyplot as plt
+import matplotlib.lines as mlines
+
 from keras.models import Sequential, Model
 from keras.layers import Dense, Activation, Dropout, Input, Convolution1D, Concatenate, Flatten, LSTM
 from keras.utils import np_utils, conv_utils
@@ -92,19 +94,20 @@ def makeDiscr(discr_dict,outfile,xtitle="discriminator",nbins=30,x_min=0,x_max=1
     c.SaveAs(outfile)
 
 #samples = ['cQQ1']
-out_dir = 'XsecContours_cQQ1_ctt1/'
-samples = ['cQQ1','ctt1']
+out_dir = 'XsecContours/'
+samples = ['cQQ1','cQt1']
 #samples = ['cQQ1']
 couplings = ['-3','-2','-1','0','+1','+2','+3']
 #couplings = ['-3','-1','0','+1','+3']
 #model = load_model('RNN_multiclass/model_checkpoint_save.hdf5')
 #wp = 0.55  #0.5506506
-wp_specific1 = 0.795
-wp_specific2 = 0.795
-wp_lvsr = 0.5
+wp_specific1 = 0.86
+wp_specific2 = 0.86
+wp_lvsr = 0.0
 #wp_cut = 900 #0.6999969090965289
-wp = 0.86
-wp_cut = 1200
+wp = 0.795
+wp_cut = 1400
+#lum = 302.3*1000.0 # pb^-1
 lum = 302.3*1000.0 # pb^-1
 #lum = 1.0 # pb^-1
 
@@ -130,10 +133,10 @@ classes_dict = {
 #xsec_error = [0.00001,0.00001,0.00001,0.00001,0.00000000000001,0.00001,0.00001,0.00001,0.00001] # pb
 xsec_frac_error = 0.01
 n=0
-input_dir = 'inference_samples_cQQ1_ctt1_preprocessed/'
+input_dir = 'inference_samples_two_preprocessed/'
 frac_syst = 0.5
-#x_sec = np.load('cross_interference/cross_section.npy')
-x_sec = np.load('cQQ1_ctt1_inference_cross/cross_section.npy')
+x_sec = np.load('cross_interference/cross_section.npy')
+#x_sec = np.load('cQQ1_ctt1_inference_cross/cross_section.npy')
 
 
 n=0
@@ -158,13 +161,14 @@ for z in couplings:
                         if z is not '0' or k is not '0':
                                     name = samples[0]+'_'+z+'_'+samples[1]+'_'+k
                                     X_flat = np.load(input_dir+name+'features_flat.npy')
-                                    discr_dict = np.load(input_dir+name+'prediction_inference_model.npy')
-				    discr_dict2 = np.load(input_dir+name+'prediction_rightleft.npy')
+                                    #discr_dict = np.load(input_dir+name+'prediction_inference_model.npy')
+                                    discr_dict = np.load(input_dir+name+'prediction_rightleft.npy')
+				    discr_dict2 = np.load(input_dir+name+'prediction_inference_model.npy')
 				    discr_spec = 1-discr_dict2[:,0]
                                     discr = 1-discr_dict[:,0]
                                     discr_left = (discr_dict2[:,classes_dict['cQQ1']])/(1-discr_dict2[:,0]-discr_dict2[:,3])
-				    discr_right = ( discr_dict2[:,classes_dict['ctt1']] )/(1-discr_dict2[:,0]-discr_dict2[:,3])
-                                    #discr_specific1 = (discr_dict[:,classes_dict['cQQ1']])/(discr_dict[:,classes_dict['cQQ1']]+discr_dict[:,0])
+				    discr_right = ( discr_dict2[:,classes_dict['cQt1']] )/(1-discr_dict2[:,0]-discr_dict2[:,3])
+                                    #discr_specific = (discr_dict[:,classes_dict['cQQ1']])/(discr_dict[:,classes_dict['cQQ1']]+discr_dict[:,0])
 				    #discr_specific2 = ( discr_dict[:,classes_dict['cQt1']] )/(discr_dict[:,classes_dict['cQt1']]+discr_dict[:,0])
                                     SR1 = (discr_left > wp_lvsr) & (discr_spec > wp_specific1)
                                     SR2 = (discr_left < wp_lvsr) & (discr_spec > wp_specific2)
@@ -183,14 +187,15 @@ for z in couplings:
                                     n+=1
                         else:
                                     X_flat = np.load('SM_only/features_flat.npy')
-                                    discr_dict = np.load('SM_only/prediction_inference_model.npy')
+                                    #discr_dict = np.load('SM_only/prediction_inference_model.npy')
+                                    discr_dict = np.load('SM_only/prediction_rightleft.npy')
 				    discr_dict2 = np.load('SM_only/prediction_rightleft.npy')	
 				    discr_spec = 1-discr_dict2[:,0]
                                     discr = 1-discr_dict[:,0]
                                     discr_left = (discr_dict2[:,classes_dict['cQQ1']])/(1-discr_dict2[:,0]-discr_dict2[:,3])
-				    discr_right = ( discr_dict2[:,classes_dict['ctt1']] )/(1-discr_dict2[:,0]-discr_dict2[:,3])
+				    discr_right = ( discr_dict2[:,classes_dict['cQt1']] )/(1-discr_dict2[:,0]-discr_dict2[:,3])
                                     discr_specific1 = (discr_dict[:,classes_dict['cQQ1']])/(discr_dict[:,classes_dict['cQQ1']]+discr_dict[:,0])
-				    discr_specific2 = ( discr_dict[:,classes_dict['ctt1']] )/(discr_dict[:,classes_dict['ctt1']]+discr_dict[:,0])
+				    discr_specific2 = ( discr_dict[:,classes_dict['cQt1']] )/(discr_dict[:,classes_dict['cQt1']]+discr_dict[:,0])
                                     SR1 = (discr_left > wp_lvsr) & (discr_spec > wp_specific1)
                                     SR2 = (discr_left < wp_lvsr) & (discr_spec > wp_specific2)
                                     #SR1 = (discr_specific1 > wp_specific1)
@@ -223,7 +228,7 @@ xsec_discs_sr2 = np.asarray(events_discs_sr2)
 xsec_cut = np.asarray(events_cut)
 coupling_strengths1 = np.asarray(events_coupling1)
 coupling_strengths2 = np.asarray(events_coupling2)
-objects = {'xsec': xsec_pure,'xsec_discrim': xsec_discs,'xsec_discrim_sr1': xsec_discs_sr1,'xsec_discrim_sr2': xsec_discs_sr2,'xsec_cut': xsec_cut}
+objects = {'xsec_discrim': xsec_discs,'xsec_discrim_sr1': xsec_discs_sr1,'xsec_cut': xsec_cut}
 #objects = {'xsec': xsec_pure, 'xsec_discrim': xsec_discs,'xsec_cut': xsec_cut} 
 print 'finished converting lists'
 
@@ -273,6 +278,7 @@ makeDiscr({"SM":SM_ht,"R_EFT":rEFT_ht,"L_EFT":lEFT_ht}, "Ht_SMvsEFT.pdf","H_{t}"
 #coupling_strengths1 = np.reshape(coupling_strengths1,(7,7))
 #coupling_strengths2 = np.reshape(coupling_strengths2,(7,7))
 colors_dict = {'xsec': 'red', 'xsec_discrim': 'blue', 'xsec_discrim_sr1': 'green', 'xsec_discrim_sr2': 'orange', 'xsec_cut': 'black','xsec_combined':'purple'}
+labels_dict = {'xsec': 'No cuts', 'xsec_discrim': 'no interference model', 'xsec_discrim_sr1': 'interference model', 'xsec_discrim_sr2': 'SR2', 'xsec_cut': 'Ht cut','xsec_combined':'SR1+SR2'}
 #colors_dict = {'xsec': 'red', 'xsec_discrim_sr1': 'green', 'xsec_discrim_sr2': 'orange'}
 sr1 = np.array([])
 sr2 = np.array([])
@@ -299,8 +305,8 @@ sr2 = np.array([])
 #axes = plt.gca()
 #axes.set_ylim([-0.0005,0.0005])
 #plt.savefig('CQt1vsCut.png')
-
-
+print uncs['xsec_cut']
+ax = plt.subplot(111)
 for name_sec,xsec in objects.items():
 	    xsec_error = xsec_frac_error*xsec
             #intial = [0.001,1,1,1,1,1,1,1,1,1]
@@ -334,15 +340,19 @@ for name_sec,xsec in objects.items():
             f = open(out_dir+'output'+name_sec+'.txt', 'a')
             f.write(sample+','+str(limits[name_sec])+','+str(limits[name_sec])+'\n')
 	    pa = pa.reshape((51,51))
-            plt.contour(ba,ka,pa,[3.84], colors = colors_dict[name_sec])
+            
+            plt.contour(ba,ka,pa,[3.84], colors = colors_dict[name_sec],label=labels_dict[name_sec])
             
 
-comb = sr1+sr2
-comb = comb.reshape((51,51))
-une = np.arange(xmin, xmax+ float(xmax-xmin)/float(nsteps), float(xmax-xmin)/float(nsteps))
-deux = np.arange(xmin, xmax+ float(xmax-xmin)/float(nsteps), float(xmax-xmin)/float(nsteps))
-plt.contour(une,deux,comb,[5.991], colors = 'violet')
-
-
-plt.savefig(out_dir+'fit_'+name_sec+'_'+sample+'.png')
-plt.savefig(out_dir+'fit_'+name_sec+'_'+sample+'.pdf')
+#comb = sr1+sr2
+#comb = comb.reshape((51,51))
+#une = np.arange(xmin, xmax+ float(xmax-xmin)/float(nsteps), float(xmax-xmin)/float(nsteps))
+#deux = np.arange(xmin, xmax+ float(xmax-xmin)/float(nsteps), float(xmax-xmin)/float(nsteps))
+#plt.contour(une,deux,comb,[5.991], colors = 'violet',label=labels_dict['xsec_combined'])
+plt.xlabel('cQt1')
+plt.ylabel('cQQ1')
+blue_line = [mlines.Line2D([], [], color=colors_dict[nomnom], label=labels_dict[nomnom]) for nomnom, dummy in objects.items()]
+#blue_line.append(mlines.Line2D([], [], color='violet', label=labels_dict['xsec_combined']))
+plt.legend(handles=blue_line)
+plt.savefig(out_dir+'fit_inference_'+name_sec+'_'+sample+'.png')
+plt.savefig(out_dir+'fit_inference_'+name_sec+'_'+sample+'.pdf')

@@ -35,9 +35,8 @@ def convertToLatex(c):
 #    0:'ctt1'
 #}
 showing_order = {
-    2:'cQt1',
-    1:'cQQ1',
-    0:'ctt1'
+    1:'cQt8',
+    0:'cQQ8'
 }
 
 
@@ -81,7 +80,7 @@ for idx,c in enumerate(couplings_infer):
 
     
 #n_couplings = len(couplings_tttt)
-n_couplings = 3
+n_couplings = 2
 
 offset_tttt = 2*(1./float(n_couplings))/6
 offset_xsec = 3*(1./float(n_couplings))/6
@@ -236,8 +235,8 @@ l.AddEntry(gr_tttt,"pure cross section (2#sigma)","l")
 l.Draw("same")
 
 
-c.SaveAs("./limits_summary.pdf")
-c.SaveAs("./limits_summary.png")
+c.SaveAs("./limits_octet_summary.pdf")
+c.SaveAs("./limits_octet_summary.png")
 
 
 
