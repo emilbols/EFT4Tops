@@ -209,7 +209,7 @@ for c in couplings:
         #C1tu_chain = TChain("")
 
 namelist = ['cQQ1','cQQ8','cQt1','cQt8','ctt1']
-coupling = ['-20','-10','-5','+5','+10','+20']
+coupling = ['-20','-10','-5','-1','+1','+5','+10','+20']
 first_set = False
 for gdp in namelist:
         for bbp in coupling:
@@ -285,8 +285,10 @@ for gdp in namelist:
                         Z_Y_full = Z_Y
                         first_set = True  
 
-np.save('train_samples_preprocessed/'+name+'features_jet.npy',Z_jets_full)
-np.save('train_samples_preprocessed/'+name+'features_mu.npy',Z_mu_full)
-np.save('train_samples_preprocessed/'+name+'features_el.npy',Z_el_full)
-np.save('train_samples_preprocessed/'+name+'features_flat.npy',Z_flat_full)
-np.save('train_samples_preprocessed/'+name+'truth.npy',Z_Y_full)
+
+name = 'WithSM_LO_'
+np.save('Sample_train_LO/'+name+'features_jet.npy',Z_jets_full)
+np.save('Sample_train_LO/'+name+'features_mu.npy',Z_mu_full)
+np.save('Sample_train_LO/'+name+'features_el.npy',Z_el_full)
+np.save('Sample_train_LO/'+name+'features_flat.npy',Z_flat_full)
+np.save('Sample_train_LO/'+name+'truth.npy',Z_Y_full)

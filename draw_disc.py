@@ -147,11 +147,11 @@ def makeDiscr(discr_dict,outfile,xtitle="discriminator"):
     c.SaveAs(outfile)
 
 
-Y = np.load('numpy_array/truth.npy')    
-X_jets = np.load('numpy_array/features_jet.npy')
-X_mu = np.load('numpy_array/features_mu.npy')
-X_el = np.load('numpy_array/features_el.npy')
-X_flat = np.load('numpy_array/features_flat.npy')
+Y = np.load('MoreSMLO/truth.npy')    
+X_jets = np.load('MoreSMLO/features_jet.npy')
+X_mu = np.load('MoreSMLO/features_mu.npy')
+X_el = np.load('MoreSMLO/features_el.npy')
+X_flat = np.load('MoreSMLO/features_flat.npy')
 print X_jets.shape
 print Y.shape
 SM = (Y == 0) 
@@ -182,15 +182,15 @@ op5 = (Y_test == 5)[:,0]
 
 X_train = [X_jets_train,X_mu_train, X_el_train, X_flat_train]
 X_test = [X_jets_test,X_mu_test,X_el_test,X_flat_test]
-model = load_model('RNN_multiclass/model_checkpoint_save.hdf5')
+model = load_model('model_RNN_leftright_onLO/model_checkpoint_save.hdf5')
 #model = load_model('model_RNN_leftright/model_checkpoint_save.hdf5')
 discr_dict = model.predict(X_test)
 print discr_dict.shape
 print y_test.shape
-discr = discr_dict[:,1]+discr_dict[:,2]
-discrTL =(discr_dict[:,1]+discr_dict[:,2])/(discr_dict[:,1]+discr_dict[:,2]+discr_dict[:,3]+discr_dict[:,4]+discr_dict[:,5])
+discr = discr_dict[:,1]+discr_dict[:,2]+discr_dict[:,3]
+discrTL =(discr_dict[:,1])/(discr_dict[:,1]+discr_dict[:,2]+discr_dict[:,3])
 
-discrTLR =(discr_dict[:,3])/(discr_dict[:,1]+discr_dict[:,2]+discr_dict[:,3]+discr_dict[:,4]+discr_dict[:,5])
+discrTLR =(discr_dict[:,3])/(discr_dict[:,1]+discr_dict[:,2]+discr_dict[:,3])
 
 discrTLvsSM =discr_dict[:,1]/(discr_dict[:,1]+discr_dict[:,0])
 
@@ -216,34 +216,28 @@ t2R_discr = discrTLR[right]
 SM2_left_right_discr = discrTLR[SM]
 
 
-discr_cQQ1 = discr_dict[:,1]/(discr_dict[:,2]+discr_dict[:,1])
+discr_cQQ1 = discr_dict[:,1]/(discr_dict[:,0]+discr_dict[:,1])
 cQQ8_discr_cQQ1 = discr_cQQ1[op2]
 cQQ1_discr_cQQ1 = discr_cQQ1[op1]
 
-discr_cQt1 = discr_dict[:,3]/(discr_dict[:,3]+discr_dict[:,4])
+discr_cQt1 = discr_dict[:,2]/(discr_dict[:,2]+discr_dict[:,0])
 cQt8_discr_cQt1 = discr_cQt1[op4]
 cQt1_discr_cQt1 = discr_cQt1[op3]
 
-discr_cQt1 = discr_dict[:,3]/(discr_dict[:,3]+discr_dict[:,4])
-cQt8_discr_cQt1 = discr_cQt1[op4]
-cQt1_discr_cQt1 = discr_cQt1[op3]
-
-discr_ctt1 = discr_dict[:,5]/(discr_dict[:,1]+discr_dict[:,5])
+discr_ctt1 = discr_dict[:,3]/(discr_dict[:,3]+discr_dict[:,1])
 ctt1_discr_ctt1 = discr_ctt1[op5]
 cQQ1_discr_ctt1 = discr_ctt1[op1]
 
-makeDiscr({"EFT":EFT_discr,"SM":SM_discr}, "discr_SMvsEFT.pdf","discriminator P(t_{L}) + P(t_{R})")
+makeDiscr({"EFT":EFT_discr,"SM":SM_discr}, "discr_SMvsEFT.pdf","discriminator P(t_{L}) + P(t_{LR}) + P(t_{R})")
 
 makeDiscr({"#splitline{EFT with}{cQQ1+cQQ8}":tL_discr, "#splitline{EFT with}{ctt1}":tR_discr, "#splitline{EFT with}{cQt1}":tcQt1_discr,"#splitline{EFT with}{cQt8}":tcQt8_discr,"SM":SM_left_right_discr},"discr_tL_withEveryClass.pdf","discriminator #frac{P_{cQQ1+cQQ8}}{P_{cQQ1+cQQ8}+P_{cQt1}+P_{cQt8}+ P_{ctt1}}")
 
-
-makeDiscr({"#splitline{EFT with}{cQQ1+cQQ8}":t2L_discr, "#splitline{EFT with}{ctt1}":t2R_discr, "#splitline{EFT with}{cQt1}":t2cQt1_discr,"#splitline{EFT with}{cQt8}":t2cQt8_discr,"SM":SM2_left_right_discr},"discr_tcQt1_withEveryClass.pdf","discriminator #frac{P_{cQt1}}{P_{cQQ1+cQQ8}+P_{cQt1}+P_{cQt8}+ P_{ctt1}}")
+makeDiscr({"#splitline{EFT with}{cQQ1+cQQ8}":t2L_discr, "#splitline{EFT with}{ctt1}":t2R_discr, "#splitline{EFT with}{cQt1}":t2cQt1_discr,"#splitline{EFT with}{cQt8}":t2cQt8_discr,"SM":SM2_left_right_discr},"discr_tR_withEveryClass.pdf","discriminator #frac{P_{ctt1}}{P_{cQQ1+cQQ8}+P_{cQt1}+P_{cQt8}+ P_{ctt1}}")
 
 makeDiscr({"#splitline{EFT with}{cQQ1}":cQQ1_discr_cQQ1, "#splitline{EFT with}{cQQ8}":cQQ8_discr_cQQ1},"discr_cQQ1vsCQQ8.pdf","discriminator #frac{P_{cQQ1}}{P_{cQQ1}+P_{cQQ8}}")
 
 makeDiscr({"#splitline{EFT with}{cQt1}":cQt1_discr_cQt1, "#splitline{EFT with}{cQt8}":cQt8_discr_cQt1},"discr_cQt1vsCQt8.pdf","discriminator #frac{P_{cQt1}}{P_{cQt1}+P_{cQt8}}")
 
 makeDiscr({"#splitline{EFT with}{ctt1}":ctt1_discr_ctt1, "#splitline{EFT with}{cQQ1}":cQQ1_discr_ctt1},"discr_cQQ1vsctt1.pdf","discriminator #frac{P_{ctt1}}{P_{ctt1}+P_{cQQ1}}")
-
 
 makeDiscr({"#splitline{EFT with}{left-handed top}":EFT_tL_discr, "#splitline{EFT with}{right-handed top}":EFT_tR_discr,"SM":SM_discr}, "discr_SMvstLvstR.pdf","discriminator P(t_{L}) + P(t_{R})")

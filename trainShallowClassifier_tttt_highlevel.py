@@ -25,7 +25,7 @@ from numpy.lib.recfunctions import stack_arrays
 from sklearn.preprocessing import StandardScaler
 from keras.models import load_model
 from sklearn.metrics import roc_curve,roc_auc_score
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 import pickle
 from rootpy.plotting import Hist
 
@@ -195,15 +195,17 @@ def drawTrainingCurve(input,output):
 
 gROOT.SetBatch(1)
 
-OutputDir = 'Model_Shallow_highlevel'
-Y = np.load('numpy_array_highlevel/truth.npy')    
-X_flat = np.load('numpy_array_highlevel/features_flat.npy')
+OutputDir = 'Model_Shallow_highlevel_LO'
+Y = np.load('LO_highlevel_train/truth.npy')    
+X_flat = np.load('LO_highlevel_train/features_flat.npy')
 print Y.shape
 SM = (Y == 0) 
 left = ((Y == 1) | (Y == 2))
-right = ((Y == 3) | (Y == 4) | (Y == 5))
+leftright = ((Y == 3) | (Y == 4) )
+right = (Y == 5)
 Y[left] = 1
-Y[right] = 2
+Y[leftright] = 2
+Y[right] = 3
 
 cut = len(Y[SM])/2
 Y = Y[cut:]
@@ -217,7 +219,7 @@ print len(Y[SM])
 print len(Y[right])
 labels = Y
 
-Y = to_categorical(labels, num_classes=3)
+Y = to_categorical(labels, num_classes=4)
 
 
 X_flat_train, X_flat_test, Y_train, Y_test, y_train, y_test = train_test_split(X_flat, Y, labels, test_size=0.2,random_state = 930607)
@@ -226,7 +228,7 @@ X_flat_train, X_flat_test, Y_train, Y_test, y_train, y_test = train_test_split(X
 
 adam = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 
-nclasses = 3
+nclasses = 4
 dropoutRate = 0.1
 
 Inputs = Input(shape=(22,))
@@ -235,9 +237,6 @@ x = BatchNormalization(momentum=0.6,name='globalvars_input_batchnorm')     (Inpu
 
 x = Dense(50,activation='relu',kernel_initializer='lecun_uniform',name='dense_0')(x)
 x = Dropout(dropoutRate)(x)
-x = Dense(50,activation='relu',kernel_initializer='lecun_uniform',name='dense_1')(x)
-x = Dropout(dropoutRate)(x)
-
 pred=Dense(nclasses, activation='softmax',kernel_initializer='lecun_uniform',name='ID_pred')(x)
 
 model = Model(inputs=Inputs,outputs=pred)
@@ -249,7 +248,7 @@ X_test = X_flat_test
 
 
 train_history = model.fit(X_train, Y_train,
-                          batch_size=512, epochs=100,
+                          batch_size=512, epochs=200,
                           validation_data=(X_test, Y_test),
                           callbacks = [ModelCheckpoint(OutputDir + "/model_checkpoint_save.hdf5")],
                           shuffle=True,verbose=1)
@@ -258,15 +257,16 @@ pickle.dump(train_history.history,open(OutputDir + "/loss_and_acc.pkl",'wb'))
 drawTrainingCurve(OutputDir+"/loss_and_acc.pkl",OutputDir+"/training_curve.pdf")
 
 discr_dict = model.predict(X_test)
-SM_discr = [(discr_dict[jdx,1]+discr_dict[jdx,2]) for jdx in range(0,len(discr_dict[:,0])) if y_test[jdx] == 0]
-EFT_discr = [(discr_dict[jdx,1]+discr_dict[jdx,2]) for jdx in range(0,len(discr_dict[:,0])) if y_test[jdx] ==1 or y_test[jdx] == 2]
+SM_discr = [(1-discr_dict[jdx,0]) for jdx in range(0,len(discr_dict[:,0])) if y_test[jdx] == 0]
+EFT_discr = [(1-discr_dict[jdx,0]) for jdx in range(0,len(discr_dict[:,0])) if y_test[jdx] ==1 or y_test[jdx] == 2 or y_test[jdx] == 3]
 fpr, tpr, thres = roc_curve(np.concatenate((np.zeros(len(SM_discr)),np.ones(len(EFT_discr)))),np.concatenate((SM_discr,EFT_discr)))
 AUC = 1-roc_auc_score(np.concatenate((np.zeros(len(SM_discr)),np.ones(len(EFT_discr)))),np.concatenate((SM_discr,EFT_discr)))
 makeROC(fpr, tpr, thres,AUC,OutputDir+"/roc_SMvsEFT.pdf","EFT","SM")
 makeDiscr({"EFT":EFT_discr,"SM":SM_discr},OutputDir+"/discr_SMvsEFT.pdf","discriminator P(t_{L}) + P(t_{R})")
 
-tL_discr = [discr_dict[jdx,1]/(discr_dict[jdx,1]+discr_dict[jdx,2]) for jdx in range(0,len(discr_dict[:,0])) if y_test[jdx] == 1]
-tR_discr = [discr_dict[jdx,1]/(discr_dict[jdx,1]+discr_dict[jdx,2]) for jdx in range(0,len(discr_dict[:,0])) if y_test[jdx] == 2]
+tL_discr = [discr_dict[jdx,1]/(1-discr_dict[jdx,0]) for jdx in range(0,len(discr_dict[:,0])) if y_test[jdx] == 1]
+tLR_discr = [discr_dict[jdx,1]/(1-discr_dict[jdx,0]) for jdx in range(0,len(discr_dict[:,0])) if y_test[jdx] == 2]
+tR_discr = [discr_dict[jdx,1]/(1-discr_dict[jdx,0]) for jdx in range(0,len(discr_dict[:,0])) if y_test[jdx] == 3]
 fpr, tpr, thres = roc_curve(np.concatenate((np.zeros(len(tR_discr)),np.ones(len(tL_discr)))),np.concatenate((tR_discr,tL_discr)))
 AUC = 1-roc_auc_score(np.concatenate((np.zeros(len(tR_discr)),np.ones(len(tL_discr)))),np.concatenate((tR_discr,tL_discr)))
 makeROC(fpr, tpr, thres,AUC,OutputDir+"/roc_tLvstR.pdf","t_{L}","t_{R}")

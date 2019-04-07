@@ -11,7 +11,7 @@ from collections import Counter
 import root_numpy as rootnp
 import matplotlib.pyplot as plt
 from keras.models import Sequential, Model
-from keras.layers import Dense, Activation, Dropout, Input, Convolution1D, Concatenate, Flatten, LSTM
+from keras.layers import Dense, Activation, Dropout, Input, Lambda, Convolution1D, Concatenate, Flatten, LSTM
 from keras.utils import np_utils, conv_utils
 from keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateScheduler
 from keras.optimizers import SGD,Adam
@@ -19,6 +19,7 @@ from keras.regularizers import l1, l2
 from keras.regularizers import l1, l2
 from keras.utils import to_categorical
 from keras.layers.normalization import BatchNormalization
+
 #from keras.utils.visualize_util import plot
 from numpy.lib.recfunctions import stack_arrays
 from sklearn.preprocessing import StandardScaler
@@ -263,7 +264,8 @@ jets = BatchNormalization(momentum=0.6,name='jets_input_batchnorm') (Inputs[0])
 muons = BatchNormalization(momentum=0.6,name='muons_input_batchnorm')     (Inputs[1])
 elec = BatchNormalization(momentum=0.6,name='elec_input_batchnorm')     (Inputs[2])
 globalvars = BatchNormalization(momentum=0.6,name='globalvars_input_batchnorm')     (Inputs[3])
-jets = Flatten()(jets)
+jets  = Lambda(lambda x: K.sum(x, axis=1), output_shape=lambda s: (s[0], s[2]))(jets)    
+#jets = Flatten()(jets)
 elec = Flatten()(elec)
 muons = Flatten()(muons)
 x = Concatenate()( [globalvars,jets,muons,elec])

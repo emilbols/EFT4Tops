@@ -134,10 +134,16 @@ classes_dict = {
 xsec_frac_error = 0.01
 n=0
 input_dir = 'inference_samples_two_preprocessed/'
-frac_syst = 0.5
+frac_syst = 0.2
 x_sec = np.load('cross_interference/cross_section.npy')
 #x_sec = np.load('cQQ1_ctt1_inference_cross/cross_section.npy')
 
+eff = 0.4
+for sample in samples:
+            for n in range(0,len(x_sec[sample])):
+                        x_sec[sample][n] = x_sec[sample][n]*eff
+
+                                                            
 
 n=0
 uncs = {'xsec': 0.0,'xsec_discrim': 0.0, 'xsec_discrim_sr1': 0.0,'xsec_discrim_sr2': 0.0, 'xsec_cut': 0.0}
@@ -162,8 +168,8 @@ for z in couplings:
                                     name = samples[0]+'_'+z+'_'+samples[1]+'_'+k
                                     X_flat = np.load(input_dir+name+'features_flat.npy')
                                     #discr_dict = np.load(input_dir+name+'prediction_inference_model.npy')
-                                    discr_dict = np.load(input_dir+name+'prediction_rightleft.npy')
-				    discr_dict2 = np.load(input_dir+name+'prediction_rightleft.npy')
+                                    discr_dict = np.load(input_dir+name+'prediction_rightleft_LO.npy')
+				    discr_dict2 = np.load(input_dir+name+'prediction_rightleft_LO.npy')
 				    discr_spec = 1-discr_dict2[:,0]
                                     discr = 1-discr_dict[:,0]
                                     discr_left = (discr_dict2[:,classes_dict['cQQ1']])/(1-discr_dict2[:,0]-discr_dict2[:,3])
@@ -186,10 +192,10 @@ for z in couplings:
                                     print int(k)
                                     n+=1
                         else:
-                                    X_flat = np.load('SM_only/features_flat.npy')
+                                    X_flat = np.load('SM_LO_only/features_flat.npy')
                                     #discr_dict = np.load('SM_only/prediction_inference_model.npy')
-                                    discr_dict = np.load('SM_only/prediction_rightleft.npy')
-				    discr_dict2 = np.load('SM_only/prediction_rightleft.npy')	
+                                    discr_dict = np.load('SM_LO_only/prediction_rightleft_LO.npy')
+				    discr_dict2 = np.load('SM_LO_only/prediction_rightleft_LO.npy')	
 				    discr_spec = 1-discr_dict2[:,0]
                                     discr = 1-discr_dict[:,0]
                                     discr_left = (discr_dict2[:,classes_dict['cQQ1']])/(1-discr_dict2[:,0]-discr_dict2[:,3])
@@ -240,9 +246,9 @@ print xsec_discs
 print xsec_cut
 
 SM_discr_dict = np.load('SM_only/prediction_inference_model.npy')
-SM_discr = 1-SM_discr_dict[:,0]
+SM_discr = (SM_discr_dict[:,3])/(SM_discr_dict[:,0]+SM_discr_dict[:,3])
 rEFT_discr_dict = np.load('inference_samples_three_preprocessed/cQQ1_0_ctt1_-3prediction_inference_model.npy')
-rEFT_discr = 1-rEFT_discr_dict[:,0]
+rEFT_discr = (rEFT_discr_dict[:,3])/(rEFT_discr_dict[:,0]+rEFT_discr_dict[:,3])
 lEFT_discr_dict = np.load('inference_samples_three_preprocessed/cQQ1_-3_ctt1_0prediction_inference_model.npy')
 lEFT_discr = 1-lEFT_discr_dict[:,0]
 
@@ -252,7 +258,7 @@ lEFT_discr_spec = lEFT_discr_dict[:,1]/(lEFT_discr_dict[:,1]+lEFT_discr_dict[:,3
 
 makeDiscr({"SM":SM_discr_spec,"R_EFT":rEFT_discr_spec,"L_EFT":lEFT_discr_spec}, "discr_SMvsEFT_spec.pdf","discriminator P(t_{L})/(P(t_{L}) + P(t_{R}))")
 
-makeDiscr({"SM":SM_discr,"R_EFT":rEFT_discr,"L_EFT":lEFT_discr}, "discr_SMvsEFT.pdf","discriminator P(t_{L}) + P(t_{R})")
+makeDiscr({"SM":SM_discr,"ctt1 C = -3":rEFT_discr}, "discr_SMvsEFT_interference.pdf","discriminator P(ctt1)/(P(SM)+P(ctt1})",nbins=20)
 
 SM_X_flat = np.load('SM_only/features_flat.npy')
 SM_ht = SM_X_flat[:,1]
@@ -269,7 +275,7 @@ lEFT_discr_spec_test = lEFT_discr_dict_test[:,1]/(lEFT_discr_dict_test[:,1]+lEFT
 
 makeDiscr({"SM":SM_discr_spec,"R_EFT":rEFT_discr_spec_test,"L_EFT":lEFT_discr_spec_test}, "discr_SMvsEFT_spec_test.pdf","discriminator P(t_{L})/(P(t_{L}) + P(t_{R}))")
 
-makeDiscr({"SM":SM_ht,"R_EFT":rEFT_ht,"L_EFT":lEFT_ht}, "Ht_SMvsEFT.pdf","H_{t}",nbins=30,x_min=0,x_max=2000)
+makeDiscr({"SM":SM_ht,"ctt1 C=-3":rEFT_ht,"cQQ1 C=-3":lEFT_ht}, "Ht_SMvsEFT.pdf","H_{t}",nbins=30,x_min=0,x_max=2000)
 #xsec_pure = np.reshape(xsec_pure,(7,7))
 #xsec_discs = np.reshape(xsec_discs,(7,7))
 #xsec_discs_target = np.reshape(xsec_discs_target,(7,7))

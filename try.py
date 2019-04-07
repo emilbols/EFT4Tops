@@ -184,7 +184,7 @@ def make_model(input_dim, nb_classes, nb_hidden_layers = 3, nb_neurons = 100,mom
 
 gROOT.SetBatch(1)
 
-InputDir = 'new_merge'
+InputDir = 'TrainingSamples_cutsUpdate/'
 classes_dict = { #name:class_number 
         'SM': 0,
         #LLLL
@@ -198,6 +198,8 @@ nb_classes = len(set(i for j,i in classes_dict.iteritems()))
 
 files = [i for i in os.listdir(InputDir) if ".root" in i]
 
+print files
+
 chain_dict = {}
 for c in couplings:
         chain_dict.update({c:TChain("tree")})
@@ -207,8 +209,9 @@ for c in couplings:
 #chain_dict["SM"].Add(InputDir + "/SM_merge_tag_1_delphes_events.root")
                 
 for f in files:
-        if "SM" not in f:
-                chain_dict["SM"].Add(InputDir + "/" + f)
+        #if 'SM_cuts_LO.root' in f:
+        chain_dict["SM"].Add(InputDir + "/" + f)
+        print f
                 
 branchnames = [i.GetName() for i in chain_dict["SM"].GetListOfBranches()]
 print branchnames, len(branchnames)
@@ -260,11 +263,11 @@ for a in range(0,X_mu.shape[0]):
                 Z_mu[a,0:len(X_mu[a,b].tolist()),b] = X_mu[a,b][:max_mu].tolist()
                 
 
-np.save('BigMerge/features_jet.npy',Z_jets)
-np.save('BigMerge/features_mu.npy',Z_mu)
-np.save('BigMerge/features_el.npy',Z_el)
-np.save('BigMerge/features_flat.npy',Z_flat)
-np.save('BigMerge/truth.npy',Z_Y)
+np.save('TrainingSamples_cutsUpdate/features_jet.npy',Z_jets)
+np.save('TrainingSamples_cutsUpdate/features_mu.npy',Z_mu)
+np.save('TrainingSamples_cutsUpdate/features_el.npy',Z_el)
+np.save('TrainingSamples_cutsUpdate/features_flat.npy',Z_flat)
+np.save('TrainingSamples_cutsUpdate/truth.npy',Z_Y)
 
 
 

@@ -184,11 +184,15 @@ def make_model(input_dim, nb_classes, nb_hidden_layers = 3, nb_neurons = 100,mom
 
 gROOT.SetBatch(1)
 
-InputDir = '/home/emil/Analysis/SM_updated_cuts'
+InputDir = 'inference_samples_two'
 classes_dict = { #name:class_number 
         'SM': 0,
         #LLLL
-        "Coupling": 1
+        'ctt1' : 1,
+        'cQQ1' : 2,
+        'cQQ8' : 3,
+        'cQt1' : 4,
+        'cQt8' : 5
 }
 
 couplings = classes_dict.keys()
@@ -203,29 +207,96 @@ for c in couplings:
         chain_dict.update({c:TChain("tree")})
         #SM_chain = TChain("")
         #C1tu_chain = TChain("")
-        
-chain_dict["SM"].Add(InputDir + "/SM_cuts_LO.root")
+
+namelist = ['cQQ1','cQQ8','cQt1','cQt8','ctt1']
+#namelist = ['cQQ1']
+coupling = ['-20','-10','-5','-1','+1','+5','+10','+20']
+output_x = 0
+output_y = 0
+first = True
+for gdp in namelist:
+        for bbp in coupling:
+                name = gdp+bbp
+                #chain_dict["SM"].Add(InputDir + "/SM_merge_tag_1_delphes_events.root")
+                file_check = ROOT.TChain("tree")
+                for f in files:
+                        if name in f:
+                                file_check.Add(InputDir + "/" + f)
+                        
+                                branchnames = [i.GetName() for i in file_check.GetListOfBranches()]
+                                print branchnames, len(branchnames)
+                        
+                jetbranch = ['jet_pt','jet_eta','jet_mass','jet_phi','jet_btag']
+                mu_branch = ['mu_pt','mu_eta','mu_mt','mu_phi','mu_q']
+                el_branch = ['el_pt','el_eta','el_mt','el_phi','el_q']
+                flat_branch = ['m_l1j1', 'H_T', 'm_l1j2', 'm_l1l2', 'Nleps', 'H_Tratio', 'Nbtags', 'Nlooseb', 'Ntightb', 'H_Tb', 'Njets', 'MET', 'm_j1j2']
                 
+                truthbranch = ['class']
+
+                data_dict = {}
+
+                Y = rootnp.tree2array(file_check,branches = truthbranch)
+                Z_Y = rootnp.rec2array(Y)
+
+                flat = rootnp.tree2array(file_check,branches = flat_branch)
+                Z_flat = rootnp.rec2array(flat)
+                #Z_Y = np.zeros(Y.shape[0])
+                #for a in range(0,Y.shape):
+                #        Z_Y[a] = Z_Y[a].tolist()
+
                 
-branchnames = [i.GetName() for i in chain_dict["SM"].GetListOfBranches()]
-print branchnames, len(branchnames)
+                X_mu = rootnp.tree2array(file_check, branches = mu_branch)
+                X_mu = rootnp.rec2array(X_mu)
+                
+                X_el = rootnp.tree2array(file_check, branches = el_branch)
+                X_el = rootnp.rec2array(X_el)
+                
+                X_jets = rootnp.tree2array(file_check, branches = jetbranch)
+                X_jets = rootnp.rec2array(X_jets)
+                
+                max_jets = 8
+                Z_jets = np.zeros((X_jets.shape[0],max_jets,len(jetbranch)))
+                for a in range(0,X_jets.shape[0]):
+                        for b in range(0,len(jetbranch)):
+                                Z_jets[a,0:len(X_jets[a,b].tolist()),b] = X_jets[a,b][:max_jets].tolist()
+                                
+                max_el = 3
+                Z_el = np.zeros((X_el.shape[0],max_el,len(el_branch)))
+                for a in range(0,X_el.shape[0]):
+                        for b in range(0,len(el_branch)):
+                                Z_el[a,0:len(X_el[a,b].tolist()),b] = X_el[a,b][:max_el].tolist()
+
+                max_mu = 3
+                Z_mu = np.zeros((X_mu.shape[0],max_mu,len(mu_branch)))
+                for a in range(0,X_mu.shape[0]):
+                        for b in range(0,len(mu_branch)):
+                                Z_mu[a,0:len(X_mu[a,b].tolist()),b] = X_mu[a,b][:max_mu].tolist()
 
 
-flat_branch = ['m_l1j1', 'deltaPhi_l1j1', 'H_T', 'm_l1j2', 'm_l1l2', 'Nleps', 'H_Tratio', 'deltaEta_l1l2', 'pT_j1', 'pT_j2', 'Nbtags', 'Wcands', 'deltaPhi_j1j2', 'Nlooseb', 'q1', 'Ntightb', 'H_Tb', 'Njets', 'mT_l2', 'mT_l1', 'MET', 'm_j1j2']
 
-truthbranch = ['class']
-
-data_dict = {}
-
-Y = rootnp.tree2array(chain_dict["SM"],branches = truthbranch)
-Z_Y = rootnp.rec2array(Y)
-
-flat = rootnp.tree2array(chain_dict["SM"],branches = flat_branch)
-Z_flat = rootnp.rec2array(flat)
-
-np.save('SM_updated_cuts/features_flat_highlevel.npy',Z_flat)
-#np.save('LO_highlevel_train/truth.npy',Z_Y)
-#model = load_model('Model_denseBased_highlevel/model_checkpoint_save.hdf5')
-#discr_dict = model.predict(Z_flat,batch_size=126)
-#np.save('SM_only_highlevel/prediction.npy',discr_dict)
-
+                Z_jets = Z_jets.reshape(Z_jets.shape[0],-1)
+                Z_mu = Z_mu.reshape(Z_mu.shape[0],-1)
+                Z_el = Z_el.reshape(Z_el.shape[0],-1)
+                koop = np.concatenate((Z_jets,Z_mu,Z_el,Z_flat),axis=1)
+                trunc = koop.shape[0]-(koop.shape[0]%50)
+                koop = koop[:trunc]
+                habba = koop.reshape(-1,50,koop.shape[-1])
+                if np.all(Z_Y == Z_Y[0]):
+                        Z_Y = Z_Y[:habba.shape[0]]
+                        print Z_Y.shape
+                        print habba.shape
+                        if first:
+                                output_x = habba
+                                output_y = Z_Y
+                                first = False
+                        else:
+                                output_x = np.concatenate((output_x,habba),axis=0)
+                                output_y = np.concatenate((output_y,Z_Y),axis=0)
+                else:
+                        print "your fucked"
+                        break
+                np.save('inference_samples_two_preprocessed/'+name+'features_jet.npy',Z_jets)
+                np.save('inference_samples_two_preprocessed/'+name+'features_mu.npy',Z_mu)
+                np.save('inference_samples_two_preprocessed/'+name+'features_el.npy',Z_el)
+                np.save('inference_samples_two_preprocessed/'+name+'features_flat.npy',Z_flat)
+                np.save('inference_samples_two_preprocessed/'+name+'truth.npy',Z_Y)

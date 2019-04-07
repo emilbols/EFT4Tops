@@ -53,10 +53,15 @@ samples = ['cQQ1','cQQ8','cQt1','cQt8','ctt1']
 couplings = ['-20','-10','-5','-1','0','+1','+5','+10','+20']
 #model = load_model('m/model_checkpoint_save.hdf5')
 wp = 0.78  #0.5506506
-#wp_specific = 0.385
+wp_specific = 0.385
 #wp_cut = 900 #0.6999969090965289
-wp_list = np.arange(0.45,0.95,0.01)
-#wp_list = np.arange(0.55,0.75,0.01)
+#wp_list = np.arange(0.45,0.95,0.01)
+
+eff = 0.4
+#eff = 1.0
+
+
+wp_list = np.arange(0.05,0.85,0.01)
 wp_cut = 1450
 #wp_list = np.arange(600,2000,50)
 #wp_list = [1200]
@@ -73,15 +78,19 @@ classes_dict = {
 }
 x_sec = {'cQQ1': [0.01541,0.003964,0.001164,0.0002886,0.0002575,0.0003095,0.00127,0.004182,0.0155],'cQQ8': [0.001889, 0.0006504, 0.0003482, 0.0002612, 0.0002575, 0.0002679, 0.0003825, 0.0007219, 0.001978],'cQt1': [0.02115, 0.005472, 0.001567, 0.0003145, 0.0002575, 0.0003105, 0.001553, 0.005465, 0.02112], 'cQt8': [0.005063, 0.00141, 0.0005217, 0.0002623,0.0002575, 0.0002842, 0.0006235, 0.001619, 0.005482], 'ctt1': [0.06074, 0.01526, 0.003965, 0.0003928,0.0002575,0.0004321,0.004174,0.01562,0.06168]} # pb
 #xsec_error = [0.00001,0.00001,0.00001,0.00001,0.00000000000001,0.00001,0.00001,0.00001,0.00001] # pb
+for sample in samples:
+            for n in range(0,len(x_sec[sample])):
+                        x_sec[sample][n] = x_sec[sample][n]*eff
+
 
 best_limit1 = {'cQQ1':-99.0,'ctt1':-99.0,'cQt8':-99.0,'cQt1':-99.0,'cQQ8':-99.0}
 best_limit2 = {'cQQ1':99.0,'ctt1':99.0,'cQt8':99.0,'cQt1':99.0,'cQQ8':99.0}
 best_wp = {'cQQ1':0.0,'ctt1':0.0,'cQt8':0.0,'cQt1':0.0,'cQQ8':0.0}
 xsec_frac_error = 0.01
 n=0
-input_dir = 'inference_samples_preprocessed/'
-frac_syst = 0.5
-#wp = 0.7
+input_dir = 'inference_samples_preprocessed_cuts/'
+frac_syst = 0.2
+wp = 0.7
 for wp_specific in wp_list:
    for sample in samples:
               n=0
@@ -97,20 +106,21 @@ for wp_specific in wp_list:
                           if z is not '0':
                                       name = sample+z
                                       X_flat = np.load(input_dir+name+'features_flat.npy')
-                                      discr_dict = np.load(input_dir+name+'prediction_inference_model.npy')
+                                      discr_dict = np.load(input_dir+name+'prediction_rightleft_LO.npy')
                                       discr = 1-discr_dict[:,0]
+                                      if discr_dict.shape[0] != X_flat.shape[0]:
+                                                  print 'LOL'
                                       discr_target = discr_dict[:,classes_dict[sample]]/(discr_dict[:,classes_dict[sample]]+discr_dict[:,0])
                                       sample_size = discr.shape[0]
                                       events_pure.append(x_sec[sample][n])
                                       events_discs.append(x_sec[sample][n]*discr[discr > wp].shape[0]/sample_size)
                                       events_discs_target.append(x_sec[sample][n]*discr[discr_target > wp_specific].shape[0]/sample_size)
                                       events_cut.append(x_sec[sample][n]*discr[X_flat[:,1] > wp_cut].shape[0]/sample_size)
-                                      print discr[discr > wp].shape[0]
                                       events_coupling.append(int(z))
                                       n+=1
                           else:
-                                      X_flat = np.load('SM_only/features_flat.npy')
-                                      discr_dict =np.load('SM_only/prediction_inference_model.npy')
+                                      X_flat = np.load('SM_updated_cuts/features_flat.npy')
+                                      discr_dict =np.load('SM_updated_cuts/prediction_rightleft_LO.npy')
                                       discr = 1-discr_dict[:,0]
                                       discr_target = discr_dict[:,classes_dict[sample]]/(discr_dict[:,classes_dict[sample]]+discr_dict[:,0])
                                       sample_size = discr.shape[0]
@@ -118,7 +128,6 @@ for wp_specific in wp_list:
                                       events_discs.append(x_sec[sample][n]*discr[discr > wp].shape[0]/sample_size)
                                       events_discs_target.append(x_sec[sample][n]*discr[discr_target > wp_specific].shape[0]/sample_size)
                                       events_cut.append(x_sec[sample][n]*discr[X_flat[:,1] > wp_cut].shape[0]/sample_size)
-                                      print discr[discr > wp].shape[0]
                                       events_coupling.append(int(z))
                                       uncs['xsec'] = sqrt( (sqrt(lum*x_sec[sample][n])/lum)**2 + (frac_syst*x_sec[sample][n])**2 )
                                       uncs['xsec_discrim'] = sqrt( ( sqrt(lum*x_sec[sample][n]*discr[discr > wp].shape[0]/sample_size)/lum )**2 + (frac_syst*x_sec[sample][n]*discr[discr > wp].shape[0]/sample_size)**2 )
@@ -156,11 +165,11 @@ for wp_specific in wp_list:
                           y_1 = [(i-coeff[0])**2/((uncs[name_sec])**2) for i in y]                          
                           ymin = -2
                           ymax = 15
-                          ba = np.arange(xmin, xmax+ float(xmax-xmin)/float(5000), float(xmax-xmin)/float(5000))
+                          ba = np.arange(xmin, xmax+ float(xmax-xmin)/float(20000), float(xmax-xmin)/float(20000))
                           for i in ba:
                                       p = coeff[0]*(1 + coeff[1]*i + coeff[2]*i*i)
                                       test = (p-coeff[0])**2/((uncs[name_sec])**2)
-                                      if np.abs(test - 3.84) < 0.1:
+                                      if np.abs(test - 3.84) < 0.04:
                                                   limits[name_sec].append(i)
                           f = open(out_dir+'output'+name_sec+'.txt', 'a')
                           if limits[name_sec][0] > best_limit1[sample]:

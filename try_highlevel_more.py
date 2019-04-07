@@ -184,7 +184,7 @@ def make_model(input_dim, nb_classes, nb_hidden_layers = 3, nb_neurons = 100,mom
 
 gROOT.SetBatch(1)
 
-InputDir = 'inference_samples'
+InputDir = 'inference_samples_with_updated_cuts/'
 classes_dict = { #name:class_number 
         'SM': 0,
         #LLLL
@@ -234,8 +234,8 @@ for gdp in namelist:
                 flat = rootnp.tree2array(file_check,branches = flat_branch)
                 Z_flat = rootnp.rec2array(flat)
 
-                np.save('inference_samples_preprocessed_highlevel/'+name+'features_flat.npy',Z_flat)
-                np.save('inference_samples_preprocessed_highlevel/'+name+'truth.npy',Z_Y)
+                np.save('inference_samples_preprocessed_cuts/'+name+'features_high_flat.npy',Z_flat)
+                #np.save('inference_samples_preprocessed_cuts/'+name+'truth.npy',Z_Y)
 
 
 

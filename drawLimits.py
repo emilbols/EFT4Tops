@@ -44,6 +44,7 @@ showing_order = {
 file_tttt = open("XsecPlots/outputxsec.txt","r")
 lines_tttt = file_tttt.readlines()
 couplings_tttt = [l.split(",")[0] for l in lines_tttt]
+#couplings_tttt = ['ctt1','cQQ1','cQt1']
 lower_limits_tttt = [float(l.split(",")[1]) for l in lines_tttt]
 upper_limits_tttt = [float(l.split(",")[2]) for l in lines_tttt]
 #make dictionary
@@ -60,7 +61,7 @@ xsec_dict={}
 for idx,c in enumerate(couplings_xsec):
     xsec_dict[c]=[lower_limits_xsec[idx],upper_limits_xsec[idx]]
 
-file_NN = open("XsecPlots/outputxsec_discrim.txt","r")
+file_NN = open("XsecPlots/outputxsec_discrim_target.txt","r")
 lines_NN = file_NN.readlines()
 couplings_NN = [l.split(",")[0] for l in lines_NN]
 lower_limits_NN = [float(l.split(",")[1]) for l in lines_NN]
@@ -70,7 +71,7 @@ for idx,c in enumerate(couplings_NN):
     NN_dict[c]=[lower_limits_NN[idx],upper_limits_NN[idx]]
 
 
-file_infer = open("XsecPlots/outputxsec_discrim_target.txt","r")
+file_infer = open("XsecPlots/outputxsec_discrim.txt","r")
 lines_infer = file_infer.readlines()
 couplings_infer = [l.split(",")[0] for l in lines_infer]
 lower_limits_infer = [float(l.split(",")[1]) for l in lines_infer]
@@ -229,15 +230,15 @@ l.SetBorderSize(1)
 l.SetFillColor(0)
 l.SetFillStyle(1001)
 l.SetTextSize(0.037)
-l.AddEntry(gr_NN,"neural network (2#sigma)","l")
-l.AddEntry(gr_infer,"neural network with interference (2#sigma)","l")
+l.AddEntry(gr_NN,"Shallow NN (2#sigma)","l")
+l.AddEntry(gr_infer,"RNN (2#sigma)","l")
 l.AddEntry(gr_xsec,"H_{t} cut (2#sigma)","l")
 l.AddEntry(gr_tttt,"pure cross section (2#sigma)","l")
 l.Draw("same")
 
 
-c.SaveAs("./limits_summary.pdf")
-c.SaveAs("./limits_summary.png")
+c.SaveAs("./limits_summary_lal.pdf")
+c.SaveAs("./limits_summary_lal.png")
 
 
 

@@ -202,13 +202,13 @@ def drawTrainingCurve(input,output):
 
 
 gROOT.SetBatch(1)
-
-OutputDir = 'model_RNN_leftright_limited'
-Y = np.load('numpy_array/truth.npy')    
-X_jets = np.load('numpy_array/features_jet.npy')
-X_mu = np.load('numpy_array/features_mu.npy')
-X_el = np.load('numpy_array/features_el.npy')
-X_flat = np.load('numpy_array/features_flat.npy')
+OutputDir = 'model_RNN_leftright_cuts_onLO'
+InputDir = 'TrainingSamples_cutsUpdate/'
+Y = np.load(InputDir+'truth.npy')    
+X_jets = np.load(InputDir+'features_jet.npy')
+X_mu = np.load(InputDir+'features_mu.npy')
+X_el = np.load(InputDir+'features_el.npy')
+X_flat = np.load(InputDir+'features_flat.npy')
 print X_jets.shape
 print Y.shape
 SM = (Y == 0) 
@@ -219,16 +219,16 @@ Y[left] = 1
 Y[leftright] = 2
 Y[right] = 3
 
-cut = len(Y[SM])/2
-Y = Y[cut:]
+#cut = len(Y[SM])/2
+#Y = Y[cut:]
 SM = (Y == 0) 
 left = ((Y == 1))
 leftright = ((Y == 2))
 right = ((Y == 3))
-X_jets = X_jets[cut:]
-X_mu = X_mu[cut:]
-X_el = X_el[cut:]
-X_flat = X_flat[cut:]
+#X_jets = X_jets[cut:]
+#X_mu = X_mu[cut:]
+#X_el = X_el[cut:]
+#X_flat = X_flat[cut:]
 print len(Y)
 print len(Y[SM])
 print len(Y[left])
@@ -253,9 +253,9 @@ X_jets_train, X_jets_test,X_mu_train, X_mu_test,X_el_train, X_el_test,X_flat_tra
 
     
 
-adam = Adam(lr=0.005, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+adam = Adam(lr=0.003, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 
-dropoutRate = 0.2
+dropoutRate = 0.5
 
 Inputs = [Input(shape=(8,5)),Input(shape=(3,5)),Input(shape=(3,5)),Input(shape=(13,))]
 
@@ -267,19 +267,35 @@ globalvars = BatchNormalization(momentum=0.6,name='globalvars_input_batchnorm') 
 
 
 
-jets  = LSTM(100, kernel_initializer='lecun_uniform',  activation='relu', recurrent_dropout=dropoutRate, go_backwards=True, name='jets_lstm')(jets)
+jets  = LSTM(75, kernel_initializer='lecun_uniform',  activation='relu', recurrent_dropout=dropoutRate, go_backwards=True, name='jets_lstm')(jets)
+jets = BatchNormalization(momentum=0.6)(jets)
 jets = Dropout(dropoutRate)(jets)
 
+
 leps = Concatenate()([muons,elec])
-leps = LSTM(100, kernel_initializer='lecun_uniform',  activation='relu', recurrent_dropout=dropoutRate, go_backwards=True, name='leps_lstm')(leps)
+leps = LSTM(75, kernel_initializer='lecun_uniform',  activation='relu', recurrent_dropout=dropoutRate, go_backwards=True, name='leps_lstm')(leps)
+leps = BatchNormalization(momentum=0.6)(leps)
 leps = Dropout(dropoutRate)(leps)
 
+
 x = Concatenate()( [globalvars,jets,leps])
-x = Dense(200,activation='relu',kernel_initializer='lecun_uniform',name='dense_0')(x)
+x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_0')(x)
+x = BatchNormalization(momentum=0.6)(x)
 x = Dropout(dropoutRate)(x)
 x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_1')(x)
+x = BatchNormalization(momentum=0.6)(x)
 x = Dropout(dropoutRate)(x)
 x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_2')(x)
+x = BatchNormalization(momentum=0.6)(x)
+x = Dropout(dropoutRate)(x)
+x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_3')(x)
+x = BatchNormalization(momentum=0.6)(x)
+x = Dropout(dropoutRate)(x)
+x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_4')(x)
+x = BatchNormalization(momentum=0.6)(x)
+x = Dropout(dropoutRate)(x)
+x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_5')(x)
+x = BatchNormalization(momentum=0.6)(x)
 x = Dropout(dropoutRate)(x)
 pred=Dense(nclasses, activation='softmax',kernel_initializer='lecun_uniform',name='ID_pred')(x)
 
@@ -291,7 +307,7 @@ X_train = [X_jets_train,X_mu_train, X_el_train, X_flat_train]
 X_test = [X_jets_test,X_mu_test,X_el_test,X_flat_test]
 
 train_history = model.fit(X_train, Y_train,
-          batch_size=512, epochs=30,
+          batch_size=512, epochs=300,
           validation_data=(X_test, Y_test),
           callbacks = [ModelCheckpoint(OutputDir + "/model_checkpoint_save.hdf5")],
           shuffle=True,verbose=1)

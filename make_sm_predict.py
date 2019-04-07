@@ -51,7 +51,7 @@ out_dir = 'XsecContours/'
 samples = ['cQQ1','cQt1']
 #samples = ['cQQ1']
 couplings = ['-3','-2','-1','0','+1','+2','+3']
-model = load_model('model_RNN_train_on_interference_deeper//model_checkpoint_save.hdf5')
+model = load_model('model_RNN_leftright_onLO/model_checkpoint_save.hdf5')
 #wp = 0.55  #0.5506506
 wp_specific = 0.5
 wp_lvsr = 0.5
@@ -100,10 +100,10 @@ for z in couplings:
                         if z and k is not '0':
                                     n+=1
                         else:
-                                    X_jets = np.load('SM_only/features_jet.npy')
-                                    X_mu = np.load('SM_only/features_mu.npy')
-                                    X_el = np.load('SM_only/features_el.npy')
-                                    X_flat = np.load('SM_only/features_flat.npy')
+                                    X_jets = np.load('SM_updated_cuts/features_jet.npy')
+                                    X_mu = np.load('SM_updated_cuts/features_mu.npy')
+                                    X_el = np.load('SM_updated_cuts/features_el.npy')
+                                    X_flat = np.load('SM_updated_cuts/features_flat.npy')
                                     X = [X_jets,X_mu,X_el,X_flat]
-                                    discr_dict = model.predict(X,batch_size=256)
-                                    np.save('SM_only/prediction_inference_deep_model.npy',discr_dict)
+                                    discr_dict = model.predict(X,batch_size=126)
+                                    np.save('SM_updated_cuts/prediction_rightleft_LO.npy',discr_dict)

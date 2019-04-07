@@ -24,7 +24,7 @@ from numpy.lib.recfunctions import stack_arrays
 from sklearn.preprocessing import StandardScaler
 from keras.models import load_model
 from sklearn.metrics import roc_curve,roc_auc_score
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 import pickle
 from rootpy.plotting import Hist
 
@@ -212,7 +212,7 @@ adam = Adam(lr=0.005, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad
 nclasses = 3
 dropoutRate = 0.1
 
-Inputs = [Input(shape=(10,5)),Input(shape=(4,5)),Input(shape=(4,5)),Input(shape=(13,))]
+Inputs = [Input(shape=(8,5)),Input(shape=(3,5)),Input(shape=(3,5)),Input(shape=(13,))]
 
 jets = BatchNormalization(momentum=0.6,name='jets_input_batchnorm') (Inputs[0])
 muons = BatchNormalization(momentum=0.6,name='muons_input_batchnorm')     (Inputs[1])
@@ -238,18 +238,18 @@ jets = Dropout(dropoutRate)(jets)
 jets  = Convolution1D(4, 1, kernel_initializer='lecun_uniform',  activation='relu', name='jets_conv3')(jets)
 jets = Flatten()(jets)
 
-muons  = Convolution1D(64, 2, kernel_initializer='lecun_uniform',  activation='relu', name='muons_conv0')(muons)
+muons  = Convolution1D(64, 1, kernel_initializer='lecun_uniform',  activation='relu', name='muons_conv0')(muons)
 muons = Dropout(dropoutRate)(muons)
-muons  = Convolution1D(32, 2, kernel_initializer='lecun_uniform',  activation='relu', name='muons_conv1')(muons)
+muons  = Convolution1D(32, 1, kernel_initializer='lecun_uniform',  activation='relu', name='muons_conv1')(muons)
 muons = Dropout(dropoutRate)(muons)
-muons  = Convolution1D(4, 2, kernel_initializer='lecun_uniform',  activation='relu', name='muons_conv2')(muons)
+muons  = Convolution1D(4, 1, kernel_initializer='lecun_uniform',  activation='relu', name='muons_conv2')(muons)
 muons = Flatten()(muons)
 
-elec  = Convolution1D(64, 2, kernel_initializer='lecun_uniform',  activation='relu', name='elec_conv0')(elec)
+elec  = Convolution1D(64, 1, kernel_initializer='lecun_uniform',  activation='relu', name='elec_conv0')(elec)
 elec = Dropout(dropoutRate)(elec)
-elec  = Convolution1D(32, 2, kernel_initializer='lecun_uniform',  activation='relu', name='elec_conv1')(elec)
+elec  = Convolution1D(32, 1, kernel_initializer='lecun_uniform',  activation='relu', name='elec_conv1')(elec)
 elec = Dropout(dropoutRate)(elec)
-elec  = Convolution1D(4, 2, kernel_initializer='lecun_uniform',  activation='relu', name='elec_conv2')(elec)
+elec  = Convolution1D(4, 1, kernel_initializer='lecun_uniform',  activation='relu', name='elec_conv2')(elec)
 elec = Flatten()(elec)
 
 x = Concatenate()( [globalvars,jets,muons,elec])

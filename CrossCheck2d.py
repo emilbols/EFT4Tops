@@ -101,11 +101,13 @@ couplings = ['-3','-2','-1','0','+1','+2','+3']
 #couplings = ['-3','-1','0','+1','+3']
 #model = load_model('RNN_multiclass/model_checkpoint_save.hdf5')
 #wp = 0.55  #0.5506506
-wp_specific1 = 0.945
-wp_specific2 = 0.945
-wp_lvsr = 0.0
+wp_specific1 = 0.8
+wp_specific2 = 0.765
+wp_lvsr = 0.3
 #wp_cut = 900 #0.6999969090965289
-wp = 0.87
+#wp = 0.975
+#wp = 0.86
+wp = 0.86
 wp_cut = 1400
 #lum = 302.3*1000.0 # pb^-1
 lum = 302.3*1000.0 # pb^-1
@@ -161,14 +163,14 @@ for z in couplings:
                         if z is not '0' or k is not '0':
                                     name = samples[0]+'_'+z+'_'+samples[1]+'_'+k
                                     X_flat = np.load(input_dir+name+'features_flat.npy')
-                                    #discr_dict = np.load(input_dir+name+'prediction_inference_model.npy')
-                                    discr_dict = np.load(input_dir+name+'prediction_rightleft_LO.npy')
-				    discr_dict2 = np.load(input_dir+name+'prediction_interference_LO.npy')
+                                    discr_dict = np.load(input_dir+name+'prediction_inference_model.npy')
+                                    #discr_dict = np.load(input_dir+name+'prediction_rightleft_limited.npy')
+				    discr_dict2 = np.load(input_dir+name+'prediction_rightleft_limited.npy')
 				    discr_spec = 1-discr_dict2[:,0]
                                     discr = 1-discr_dict[:,0]
                                     discr_left = (discr_dict2[:,classes_dict['cQQ1']])/(1-discr_dict2[:,0]-discr_dict2[:,3])
 				    discr_right = ( discr_dict2[:,classes_dict['cQt1']] )/(1-discr_dict2[:,0]-discr_dict2[:,3])
-                                    #discr_specific = (discr_dict[:,classes_dict['cQQ1']])/(discr_dict[:,classes_dict['cQQ1']]+discr_dict[:,0])
+                                    #discr_specific1 = (discr_dict[:,classes_dict['cQQ1']])/(discr_dict[:,classes_dict['cQQ1']]+discr_dict[:,0])
 				    #discr_specific2 = ( discr_dict[:,classes_dict['cQt1']] )/(discr_dict[:,classes_dict['cQt1']]+discr_dict[:,0])
                                     SR1 = (discr_left > wp_lvsr) & (discr_spec > wp_specific1)
                                     SR2 = (discr_left < wp_lvsr) & (discr_spec > wp_specific2)
@@ -186,10 +188,15 @@ for z in couplings:
                                     print int(k)
                                     n+=1
                         else:
+                                    name = samples[0]+'_'+z+'_'+samples[1]+'_'+k
                                     X_flat = np.load('SM_LO_only/features_flat.npy')
-                                    #discr_dict = np.load('SM_LO_only/prediction_inference_model.npy')
-                                    discr_dict = np.load('SM_LO_only/prediction_rightleft_LO.npy')
-				    discr_dict2 = np.load('SM_LO_only/prediction_interference_LO.npy')	
+                                    #X_flat = np.load(input_dir+name+'features_flat.npy')
+                                    #discr_dict = np.load(input_dir+name+'prediction_inference_model.npy')
+                                    discr_dict = np.load('SM_LO_only/prediction_inference_model.npy')
+                                    #discr_dict = np.load('SM_LO_only/prediction_rightleft_limited.npy')
+				    #discr_dict2 = np.load(input_dir+name+'prediction_rightleft.npy')
+                                    discr_dict2 = np.load('SM_LO_only/prediction_rightleft_limited.npy')
+	                            print input_dir+name
 				    discr_spec = 1-discr_dict2[:,0]
                                     discr = 1-discr_dict[:,0]
                                     discr_left = (discr_dict2[:,classes_dict['cQQ1']])/(1-discr_dict2[:,0]-discr_dict2[:,3])
@@ -228,7 +235,7 @@ xsec_discs_sr2 = np.asarray(events_discs_sr2)
 xsec_cut = np.asarray(events_cut)
 coupling_strengths1 = np.asarray(events_coupling1)
 coupling_strengths2 = np.asarray(events_coupling2)
-objects = {'xsec_discrim': xsec_discs,'xsec_discrim_sr1': xsec_discs_sr1,'xsec_cut': xsec_cut}
+objects = {'xsec': xsec_pure,'xsec_discrim': xsec_discs,'xsec_discrim_sr1': xsec_discs_sr1,'xsec_discrim_sr2': xsec_discs_sr2,'xsec_cut': xsec_cut}
 #objects = {'xsec': xsec_pure, 'xsec_discrim': xsec_discs,'xsec_cut': xsec_cut} 
 print 'finished converting lists'
 
@@ -240,9 +247,9 @@ print xsec_discs
 print xsec_cut
 
 SM_discr_dict = np.load('SM_only/prediction_inference_model.npy')
-SM_discr = 1-SM_discr_dict[:,0]
+SM_discr = (SM_discr_dict[:,3])/(SM_discr_dict[:,0]+SM_discr_dict[:,3])
 rEFT_discr_dict = np.load('inference_samples_three_preprocessed/cQQ1_0_ctt1_-3prediction_inference_model.npy')
-rEFT_discr = 1-rEFT_discr_dict[:,0]
+rEFT_discr = (rEFT_discr_dict[:,3])/(rEFT_discr_dict[:,0]+rEFT_discr_dict[:,3])
 lEFT_discr_dict = np.load('inference_samples_three_preprocessed/cQQ1_-3_ctt1_0prediction_inference_model.npy')
 lEFT_discr = 1-lEFT_discr_dict[:,0]
 
@@ -252,7 +259,7 @@ lEFT_discr_spec = lEFT_discr_dict[:,1]/(lEFT_discr_dict[:,1]+lEFT_discr_dict[:,3
 
 makeDiscr({"SM":SM_discr_spec,"R_EFT":rEFT_discr_spec,"L_EFT":lEFT_discr_spec}, "discr_SMvsEFT_spec.pdf","discriminator P(t_{L})/(P(t_{L}) + P(t_{R}))")
 
-makeDiscr({"SM":SM_discr,"R_EFT":rEFT_discr,"L_EFT":lEFT_discr}, "discr_SMvsEFT.pdf","discriminator P(t_{L}) + P(t_{R})")
+makeDiscr({"SM":SM_discr,"ctt1 C = -3":rEFT_discr}, "discr_SMvsEFT_interference.pdf","discriminator P(ctt1)/(P(SM)+P(ctt1})",nbins=20)
 
 SM_X_flat = np.load('SM_only/features_flat.npy')
 SM_ht = SM_X_flat[:,1]
@@ -269,7 +276,7 @@ lEFT_discr_spec_test = lEFT_discr_dict_test[:,1]/(lEFT_discr_dict_test[:,1]+lEFT
 
 makeDiscr({"SM":SM_discr_spec,"R_EFT":rEFT_discr_spec_test,"L_EFT":lEFT_discr_spec_test}, "discr_SMvsEFT_spec_test.pdf","discriminator P(t_{L})/(P(t_{L}) + P(t_{R}))")
 
-makeDiscr({"SM":SM_ht,"R_EFT":rEFT_ht,"L_EFT":lEFT_ht}, "Ht_SMvsEFT.pdf","H_{t}",nbins=30,x_min=0,x_max=2000)
+makeDiscr({"SM":SM_ht,"ctt1 C=-3":rEFT_ht,"cQQ1 C=-3":lEFT_ht}, "Ht_SMvsEFT.pdf","H_{t}",nbins=30,x_min=0,x_max=2000)
 #xsec_pure = np.reshape(xsec_pure,(7,7))
 #xsec_discs = np.reshape(xsec_discs,(7,7))
 #xsec_discs_target = np.reshape(xsec_discs_target,(7,7))
@@ -278,7 +285,7 @@ makeDiscr({"SM":SM_ht,"R_EFT":rEFT_ht,"L_EFT":lEFT_ht}, "Ht_SMvsEFT.pdf","H_{t}"
 #coupling_strengths1 = np.reshape(coupling_strengths1,(7,7))
 #coupling_strengths2 = np.reshape(coupling_strengths2,(7,7))
 colors_dict = {'xsec': 'red', 'xsec_discrim': 'blue', 'xsec_discrim_sr1': 'green', 'xsec_discrim_sr2': 'orange', 'xsec_cut': 'black','xsec_combined':'purple'}
-labels_dict = {'xsec': 'No cuts', 'xsec_discrim': 'no interference model', 'xsec_discrim_sr1': 'interference model', 'xsec_discrim_sr2': 'SR2', 'xsec_cut': 'Ht cut','xsec_combined':'SR1+SR2'}
+labels_dict = {'xsec': 'No cuts', 'xsec_discrim': 'EFT vs SM', 'xsec_discrim_sr1': 'SR1', 'xsec_discrim_sr2': 'SR2', 'xsec_cut': 'Ht cut','xsec_combined':'SR1+SR2'}
 #colors_dict = {'xsec': 'red', 'xsec_discrim_sr1': 'green', 'xsec_discrim_sr2': 'orange'}
 sr1 = np.array([])
 sr2 = np.array([])
@@ -344,15 +351,15 @@ for name_sec,xsec in objects.items():
             plt.contour(ba,ka,pa,[3.84], colors = colors_dict[name_sec],label=labels_dict[name_sec])
             
 
-#comb = sr1+sr2
-#comb = comb.reshape((51,51))
-#une = np.arange(xmin, xmax+ float(xmax-xmin)/float(nsteps), float(xmax-xmin)/float(nsteps))
-#deux = np.arange(xmin, xmax+ float(xmax-xmin)/float(nsteps), float(xmax-xmin)/float(nsteps))
-#plt.contour(une,deux,comb,[5.991], colors = 'violet',label=labels_dict['xsec_combined'])
+comb = sr1+sr2
+comb = comb.reshape((51,51))
+une = np.arange(xmin, xmax+ float(xmax-xmin)/float(nsteps), float(xmax-xmin)/float(nsteps))
+deux = np.arange(xmin, xmax+ float(xmax-xmin)/float(nsteps), float(xmax-xmin)/float(nsteps))
+plt.contour(une,deux,comb,[5.991], colors = 'violet',label=labels_dict['xsec_combined'])
 plt.xlabel('cQt1')
 plt.ylabel('cQQ1')
 blue_line = [mlines.Line2D([], [], color=colors_dict[nomnom], label=labels_dict[nomnom]) for nomnom, dummy in objects.items()]
-#blue_line.append(mlines.Line2D([], [], color='violet', label=labels_dict['xsec_combined']))
+blue_line.append(mlines.Line2D([], [], color='violet', label=labels_dict['xsec_combined']))
 plt.legend(handles=blue_line)
-plt.savefig(out_dir+'fit_inference_'+name_sec+'_'+sample+'.png')
-plt.savefig(out_dir+'fit_inference_'+name_sec+'_'+sample+'.pdf')
+plt.savefig(out_dir+'fit_'+name_sec+'_'+sample+'.png')
+plt.savefig(out_dir+'fit_'+name_sec+'_'+sample+'.pdf')

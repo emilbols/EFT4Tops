@@ -7,17 +7,21 @@ from argparse import ArgumentParser
 from array import array
 from math import *
 import numpy as np
+import tensorflow as tf
 from collections import Counter
 import root_numpy as rootnp
 import matplotlib.pyplot as plt
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout
+from keras.models import Sequential, Model
+from keras.layers import Dense, Activation, Dropout, Input, Convolution1D, Concatenate, Flatten
 from keras.utils import np_utils
 from keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateScheduler
 from keras.optimizers import SGD,Adam
 from keras.regularizers import l1, l2
-from keras.layers import Convolution1D
+from keras.regularizers import l1, l2
+from keras.utils import to_categorical
+from keras.layers.normalization import BatchNormalization
 #from keras.utils.visualize_util import plot
+
 from numpy.lib.recfunctions import stack_arrays
 from sklearn.preprocessing import StandardScaler
 from keras.models import load_model
@@ -54,6 +58,7 @@ def draw_roc(df, df2, label, color, draw_unc=False, ls='-', draw_auc=True, flavo
         scores = np.array(scores)
         auc = ' AUC: %.3f +/- %.3f' % (scores.mean(), scores.std()) if draw_auc else ''
         plt.plot(tprs, newx, label=label + auc, c=color, ls=ls)
+
 
 def makeROC(fpr, tpr, thresholds,AUC,outfile,signal_label, background_label):
 	
@@ -155,77 +160,106 @@ def drawTrainingCurve(input,output):
     plt.savefig(output)
 
   
-def make_model(input_dim, nb_classes, nb_hidden_layers = 3, nb_neurons = 100,momentum_sgd = 0.8, init_learning_rate_sgd = 0.0005, dropout =0.15,nb_epoch = 100, batch_size=128):
-    #batch_size = 128
-    #nb_epoch = args.n_epochs
 
-    #prepare the optimizer 
-    decay_sgd = init_learning_rate_sgd/float(5*nb_epoch) if nb_epoch !=0 else 0.0001
-    sgd = SGD(lr=init_learning_rate_sgd, decay=decay_sgd, momentum=momentum_sgd, nesterov=True)
-    adam = Adam(lr=0.002, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
-
-    model = Sequential()
-    model.add(Dense(nb_neurons ,input_shape= input_dim))
-    model.add(Activation('relu'))
-    model.add(Dropout(dropout))
-    for x in range ( nb_hidden_layers ):
-            model.add(Dense(nb_neurons))
-            model.add(Activation('relu'))
-            model.add(Dropout(dropout))
-    # model.add(Dense(nb_neurons))
-#     model.add(Activation('relu'))
-    #model.add(Dropout(dropout))
-    model.add(Dense(nb_classes))
-    model.add(Activation('softmax'))
-
-    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
- 
-    return model
 
 gROOT.SetBatch(1)
 
-InputDir = '/home/emil/Analysis/SM_updated_cuts'
-classes_dict = { #name:class_number 
-        'SM': 0,
-        #LLLL
-        "Coupling": 1
-}
+OutputDir = 'ConvFun'
+if not os.path.exists(OutputDir):
+            os.makedirs(OutputDir)
 
-couplings = classes_dict.keys()
-print couplings
+Y = np.load('multi_test_merge/truth.npy')    
+X = np.load('multi_test_merge/features.npy')
+print X.shape
+print Y.shape
+
+SM = (Y == 0) 
+a = ((Y == 1))
+b = ((Y == 2))
+c = ((Y == 3))
+d = ((Y == 4))
+e = ((Y == 5))
+print len(Y[SM])
+Y = Y - 1
+labels = Y
+
+Y = to_categorical(labels, num_classes=5)
+scaler = StandardScaler()
+
+#X_jets = X_jets.reshape(X_jets.shape[0],X_jets.shape[1]*X_jets.shape[2])
+#X_jets = scaler.fit_transform(X_jets)
+#X_mu = X_mu.reshape(X_mu.shape[0],X_mu.shape[1]*X_mu.shape[2])
+#X_mu = scaler.fit_transform(X_mu)
+#X_el = X_el.reshape(X_el.shape[0],X_el.shape[1]*X_el.shape[2])
+#X_el = scaler.fit_transform(X_el)
+#X_flat = scaler.fit_transform(X_flat)
+
+
+X_train,X_test, Y_train, Y_test, y_train, y_test = train_test_split(X, Y, labels, test_size=0.2)
+print X.shape
     
-nb_classes = len(set(i for j,i in classes_dict.iteritems()))
 
-files = [i for i in os.listdir(InputDir) if ".root" in i]
+adam = Adam(lr=0.005, beta_1=0.9, beta_2=0.999)
 
-chain_dict = {}
-for c in couplings:
-        chain_dict.update({c:TChain("tree")})
-        #SM_chain = TChain("")
-        #C1tu_chain = TChain("")
-        
-chain_dict["SM"].Add(InputDir + "/SM_cuts_LO.root")
-                
-                
-branchnames = [i.GetName() for i in chain_dict["SM"].GetListOfBranches()]
-print branchnames, len(branchnames)
+nclasses = 5
+dropoutRate = 0.5
+
+Inputs = [Input(shape=(50,83))]
+
+x = BatchNormalization(momentum=0.6,name='jets_input_batchnorm') (Inputs[0])
+
+x  = Convolution1D(100, 1, kernel_initializer='lecun_uniform',  activation='relu', name='x_conv0')(x)
+x = Dropout(dropoutRate)(x)
+x  = Convolution1D(100, 1, kernel_initializer='lecun_uniform',  activation='relu', name='x_conv1')(x)
+x = Dropout(dropoutRate)(x)
+x  = Convolution1D(100, 1, kernel_initializer='lecun_uniform',  activation='relu', name='x_conv2')(x)
+x = Dropout(dropoutRate)(x)
+x  = Convolution1D(5, 1, kernel_initializer='lecun_uniform',  activation='relu', name='x_conv3')(x)
+x = Dropout(dropoutRate)(x)
+x = Flatten()(x)
+x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_0')(x)
+x = Dropout(dropoutRate)(x)
+pred=Dense(nclasses, activation='softmax',kernel_initializer='lecun_uniform',name='ID_pred')(x)
+
+model = Model(inputs=Inputs,outputs=pred)
+model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
+print model.summary()
 
 
-flat_branch = ['m_l1j1', 'deltaPhi_l1j1', 'H_T', 'm_l1j2', 'm_l1l2', 'Nleps', 'H_Tratio', 'deltaEta_l1l2', 'pT_j1', 'pT_j2', 'Nbtags', 'Wcands', 'deltaPhi_j1j2', 'Nlooseb', 'q1', 'Ntightb', 'H_Tb', 'Njets', 'mT_l2', 'mT_l1', 'MET', 'm_j1j2']
+train_history = model.fit(X_train, Y_train,
+          batch_size=1, epochs=100,
+          validation_data=(X_test, Y_test),
+          callbacks = [ModelCheckpoint(OutputDir + "/model_checkpoint_save.hdf5")],
+          shuffle=True,verbose=1)
+#model.save_weights('model.h5')
 
-truthbranch = ['class']
+#for layer in model.layers:
+#        if 'input_batchnorm' not in layer.name:
+#                layer.trainable = False
+#model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
+#model.load_weights('model.h5')
 
-data_dict = {}
+#train_history = model.fit(X_train, Y_train,
+ #                         batch_size=128, nb_epoch=100,
+ #                         validation_data=(X_test, Y_test),
+ #                         callbacks = [ModelCheckpoint(OutputDir + "/model_checkpoint_save.hdf5")],
+ #                         shuffle=True,verbose=1)
 
-Y = rootnp.tree2array(chain_dict["SM"],branches = truthbranch)
-Z_Y = rootnp.rec2array(Y)
+pickle.dump(train_history.history,open(OutputDir + "/loss_and_acc.pkl",'wb'))
+drawTrainingCurve(OutputDir+"/loss_and_acc.pkl",OutputDir+"/training_curve.pdf")
+discr_dict = model.predict(X_test)
 
-flat = rootnp.tree2array(chain_dict["SM"],branches = flat_branch)
-Z_flat = rootnp.rec2array(flat)
+SM_discr = [(discr_dict[jdx,1]+discr_dict[jdx,2]) for jdx in range(0,len(discr_dict[:,0])) if y_test[jdx] == 0]
+EFT_discr = [(discr_dict[jdx,1]+discr_dict[jdx,2]) for jdx in range(0,len(discr_dict[:,0])) if y_test[jdx] ==1 or y_test[jdx] == 2]
+fpr, tpr, thres = roc_curve(np.concatenate((np.zeros(len(SM_discr)),np.ones(len(EFT_discr)))),np.concatenate((SM_discr,EFT_discr)))
+AUC = 1-roc_auc_score(np.concatenate((np.zeros(len(SM_discr)),np.ones(len(EFT_discr)))),np.concatenate((SM_discr,EFT_discr)))
+makeROC(fpr, tpr, thres,AUC,OutputDir+"/roc_SMvsEFT.pdf","EFT","SM")
+makeDiscr({"EFT":EFT_discr,"SM":SM_discr},OutputDir+"/discr_SMvsEFT.pdf","discriminator P(t_{L}) + P(t_{R})")
 
-np.save('SM_updated_cuts/features_flat_highlevel.npy',Z_flat)
-#np.save('LO_highlevel_train/truth.npy',Z_Y)
-#model = load_model('Model_denseBased_highlevel/model_checkpoint_save.hdf5')
-#discr_dict = model.predict(Z_flat,batch_size=126)
-#np.save('SM_only_highlevel/prediction.npy',discr_dict)
+tL_discr = [discr_dict[jdx,1]/(discr_dict[jdx,1]+discr_dict[jdx,2]) for jdx in range(0,len(discr_dict[:,0])) if y_test[jdx] == 1]
+tR_discr = [discr_dict[jdx,1]/(discr_dict[jdx,1]+discr_dict[jdx,2]) for jdx in range(0,len(discr_dict[:,0])) if y_test[jdx] == 2]
+fpr, tpr, thres = roc_curve(np.concatenate((np.zeros(len(tR_discr)),np.ones(len(tL_discr)))),np.concatenate((tR_discr,tL_discr)))
+AUC = 1-roc_auc_score(np.concatenate((np.zeros(len(tR_discr)),np.ones(len(tL_discr)))),np.concatenate((tR_discr,tL_discr)))
+makeROC(fpr, tpr, thres,AUC,OutputDir+"/roc_tLvstR.pdf","t_{L}","t_{R}")
+makeDiscr({"tL":tL_discr,"tR":tR_discr},OutputDir+"/discr_tLvstR.pdf","discriminator #frac{P(t_{L})}{P(t_{L}) + P(t_{R})}")
 
