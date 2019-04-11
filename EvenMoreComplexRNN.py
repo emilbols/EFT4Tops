@@ -255,7 +255,7 @@ X_jets_train, X_jets_test,X_mu_train, X_mu_test,X_el_train, X_el_test,X_flat_tra
 
 adam = Adam(lr=0.003, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 
-dropoutRate = 0.5
+dropoutRate = 0.15
 
 Inputs = [Input(shape=(8,5)),Input(shape=(3,5)),Input(shape=(3,5)),Input(shape=(13,))]
 
@@ -279,22 +279,13 @@ leps = Dropout(dropoutRate)(leps)
 
 
 x = Concatenate()( [globalvars,jets,leps])
-x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_0')(x)
+x = Dense(200,activation='relu',kernel_initializer='lecun_uniform',name='dense_0')(x)
 x = BatchNormalization(momentum=0.6)(x)
 x = Dropout(dropoutRate)(x)
 x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_1')(x)
 x = BatchNormalization(momentum=0.6)(x)
 x = Dropout(dropoutRate)(x)
 x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_2')(x)
-x = BatchNormalization(momentum=0.6)(x)
-x = Dropout(dropoutRate)(x)
-x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_3')(x)
-x = BatchNormalization(momentum=0.6)(x)
-x = Dropout(dropoutRate)(x)
-x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_4')(x)
-x = BatchNormalization(momentum=0.6)(x)
-x = Dropout(dropoutRate)(x)
-x = Dense(100,activation='relu',kernel_initializer='lecun_uniform',name='dense_5')(x)
 x = BatchNormalization(momentum=0.6)(x)
 x = Dropout(dropoutRate)(x)
 pred=Dense(nclasses, activation='softmax',kernel_initializer='lecun_uniform',name='ID_pred')(x)

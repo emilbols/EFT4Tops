@@ -52,7 +52,7 @@ samples = ['cQQ1','cQQ8','cQt1','cQt8','ctt1']
 #samples = ['cQQ1']
 couplings = ['-20','-10','-5','-1','0','+1','+5','+10','+20']
 #model = load_model('model_RNN_train_on_interference/model_checkpoint_save.hdf5')
-model = load_model('model_RNN_leftright_onLO/model_checkpoint_save.hdf5')
+model = load_model('model_RNN_leftright_cuts_onLO/model_checkpoint_save.hdf5')
 
 model.summary()
 #wp = 0.55  #0.5506506

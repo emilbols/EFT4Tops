@@ -86,7 +86,7 @@ for sample in samples:
 best_limit1 = {'cQQ1':-99.0,'ctt1':-99.0,'cQt8':-99.0,'cQt1':-99.0,'cQQ8':-99.0}
 best_limit2 = {'cQQ1':99.0,'ctt1':99.0,'cQt8':99.0,'cQt1':99.0,'cQQ8':99.0}
 best_wp = {'cQQ1':0.0,'ctt1':0.0,'cQt8':0.0,'cQt1':0.0,'cQQ8':0.0}
-xsec_frac_error = 0.01
+xsec_frac_error = 0.001
 n=0
 input_dir = 'inference_samples_preprocessed_cuts/'
 frac_syst = 0.2
@@ -165,11 +165,12 @@ for wp_specific in wp_list:
                           y_1 = [(i-coeff[0])**2/((uncs[name_sec])**2) for i in y]                          
                           ymin = -2
                           ymax = 15
-                          ba = np.arange(xmin, xmax+ float(xmax-xmin)/float(20000), float(xmax-xmin)/float(20000))
+                          ba = np.arange(xmin, xmax+ float(xmax-xmin)/float(100000), float(xmax-xmin)/float(100000))
                           for i in ba:
                                       p = coeff[0]*(1 + coeff[1]*i + coeff[2]*i*i)
-                                      test = (p-coeff[0])**2/((uncs[name_sec])**2)
-                                      if np.abs(test - 3.84) < 0.04:
+                                      #test = (p-coeff[0])**2/((uncs[name_sec])**2)
+                                      test = (p-SM[name_sec])**2/((uncs[name_sec])**2)
+                                      if np.abs(test - 3.84) < 0.01:
                                                   limits[name_sec].append(i)
                           f = open(out_dir+'output'+name_sec+'.txt', 'a')
                           if limits[name_sec][0] > best_limit1[sample]:
